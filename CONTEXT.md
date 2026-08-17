@@ -22,8 +22,31 @@ The rule set that decides how Matches are generated each Round.
 
 - **Americano** — pairings rotate so Participants meet as many different partners and
   opponents as possible; pairings are decided independently of results.
-- **Mexicano** — pairings for the next Round are derived from the current Standing
-  (leaders play leaders).
+- **Mexicano** — pairings for the next Round are derived from the current Standing.
+
+The distinction is when the schedule is decided: Americano settles it ahead of play,
+Mexicano reads it off the table each Round.
+
+## Court Ladder
+
+Mexicano's arrangement of Courts by rank: the leading Participants play Kort 1, the next
+group Kort 2, and so on. Moving up a Court between Rounds is how a Participant sees they
+are doing well. Americano has no ladder — it spreads Participants across Courts instead.
+
+## Pairing Formula
+
+In Mexicano Individual format, how a Court's four Participants are split into two sides
+by their rank within that group: `#1+#4 v #2+#3` (the default — the two sides sum to the
+same rank total, so they are as evenly matched as the group allows), `#1+#2 v #3+#4`, or
+`#1+#3 v #2+#4`. Meaningless in Teams format, where there is no pair to balance and
+adjacent ranks simply meet.
+
+## Seeding
+
+Fixing part of the first Round by hand before a Mexicano begins: pinning a Participant
+to a Court, and optionally to a side of the net, with everything unpinned drawn at
+random. Pinning a side is what allows two strong players to be placed on the same Court
+as opponents rather than risking being drawn as partners.
 
 ## Team Format
 
@@ -56,6 +79,10 @@ A Tournament has no predetermined number of Rounds. The Organiser advances it wi
 actions: **Next Round** generates another Round, **Final Round** generates a Round that
 also closes the Tournament once its results are in. Only the most recent Round can be
 undone; earlier Rounds keep their schedule, though their scores stay correctable.
+
+The Final Round is seeded from the Standing in both Formats, so a Tournament always ends
+with its contenders facing each other on Kort 1. In Americano this is the single Round
+where partner variety gives way to ranking.
 
 ## Match
 

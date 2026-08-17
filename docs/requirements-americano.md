@@ -97,8 +97,12 @@ Two controls:
 There is no configured round count. Only the most recent round can be undone; earlier
 rounds keep their schedule, though their scores remain correctable.
 
-> Open: whether `Ostatnia runda` should differ from a normal round (leaders-only final,
-> double points, …). Treated as a plain round until decided.
+The final round is the one exception to the pairing rules above: it is seeded by the
+standings instead, grouping participants four at a time in rank order and splitting each
+group `#1+#4 v #2+#3`, so the contenders end up opposing each other on `Kort 1` rather
+than scattered across courts. Applied literally — no repeat avoidance — and the
+partner-variety guarantee is waived for that round only. In teams format the final round
+pairs adjacent ranks: `#1 v #2` on `Kort 1`, `#3 v #4` on `Kort 2`.
 
 ---
 
