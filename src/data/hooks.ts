@@ -8,7 +8,8 @@ import { useEffect, useMemo, useSyncExternalStore } from 'react'
 
 import type { CreateTournamentPayload } from '../lib/database.types'
 import type { ProposedRound } from '../domain/types'
-import { phaseOf, toTournamentState } from './mapping'
+import { applyPendingScores, phaseOf, toTournamentState } from './mapping'
+import type { TournamentBundle } from './mapping'
 import * as api from './tournaments'
 import {
   configureWriter,
@@ -38,17 +39,23 @@ export function useTournament(id: string | undefined) {
   })
 }
 
-/** Bundle plus the derived views the desk needs, memoised together. */
+/**
+ * Bundle plus the derived views the desk needs, with any queued scores already
+ * applied so everything downstream reflects what the organiser just typed.
+ */
 export function useTournamentView(id: string | undefined) {
   const query = useTournament(id)
+  const pending = usePendingScores()
+
   const derived = useMemo(() => {
     if (!query.data) return null
+    const bundle = applyPendingScores(query.data, pending)
     return {
-      bundle: query.data,
-      state: toTournamentState(query.data),
-      phase: phaseOf(query.data),
+      bundle,
+      state: toTournamentState(bundle),
+      phase: phaseOf(bundle),
     }
-  }, [query.data])
+  }, [query.data, pending])
 
   return { ...query, view: derived }
 }
@@ -64,12 +71,22 @@ export function usePublicTournament(slug: string | undefined) {
   })
 }
 
+/**
+ * Returns the refetch promise rather than firing and forgetting.
+ *
+ * TanStack waits for whatever onSuccess returns before a mutation settles, so
+ * returning the promise means callers see fresh data the moment their await
+ * resolves. Discarding it made `confirmProposal` clear the proposal while the
+ * cache still held the *previous* round — a visible flash of the old round, or
+ * of the setup screen when confirming round 1.
+ */
 function useInvalidate(id: string | undefined) {
   const client = useQueryClient()
-  return () => {
-    if (id) void client.invalidateQueries({ queryKey: keys.tournament(id) })
-    void client.invalidateQueries({ queryKey: keys.tournaments })
-  }
+  return () =>
+    Promise.all([
+      id ? client.invalidateQueries({ queryKey: keys.tournament(id) }) : Promise.resolve(),
+      client.invalidateQueries({ queryKey: keys.tournaments }),
+    ])
 }
 
 export function useCreateTournament() {
@@ -198,7 +215,23 @@ export function useWriteQueue() {
   useEffect(() => {
     configureWriter(async (score) => {
       await api.writeScore(score.matchId, score.scoreA, score.scoreB)
-      void client.invalidateQueries({ queryKey: keys.tournament(score.tournamentId) })
+
+      // Patch the one match rather than invalidating the tournament. A full
+      // refetch is six round trips to replace a single number, and it is the
+      // reason entering a score felt slow. The value on screen already came
+      // from the write queue, so there is nothing to reconcile.
+      client.setQueryData<TournamentBundle>(keys.tournament(score.tournamentId), (current) =>
+        current
+          ? {
+              ...current,
+              matches: current.matches.map((match) =>
+                match.id === score.matchId
+                  ? { ...match, score_a: score.scoreA, score_b: score.scoreB }
+                  : match,
+              ),
+            }
+          : current,
+      )
     })
     startWriteQueue()
   }, [client])

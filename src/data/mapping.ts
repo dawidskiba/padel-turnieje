@@ -130,6 +130,37 @@ export function matchIdFor(
   return bundle.matches.find((m) => m.round_id === round.id && m.court_id === courtId)?.id
 }
 
+/**
+ * Overlay scores that are typed but not yet saved.
+ *
+ * Applied before anything is derived, so the court card, the standings and the
+ * rounds list all show the organiser's input immediately. Without it a score
+ * sits blank until the write and a refetch complete — around a second at the
+ * desk, which reads as the tap not having registered.
+ *
+ * The queued value is the truth here: it is what the organiser typed, and it
+ * will be written. The pending marker on the card says it is not saved yet.
+ */
+export function applyPendingScores(
+  bundle: TournamentBundle,
+  pending: Array<{ matchId: string; scoreA: number; scoreB: number }>,
+): TournamentBundle {
+  if (pending.length === 0) return bundle
+
+  const byMatch = new Map(pending.map((p) => [p.matchId, p]))
+  let changed = false
+
+  const matches = bundle.matches.map((match) => {
+    const queued = byMatch.get(match.id)
+    if (!queued) return match
+    if (match.score_a === queued.scoreA && match.score_b === queued.scoreB) return match
+    changed = true
+    return { ...match, score_a: queued.scoreA, score_b: queued.scoreB }
+  })
+
+  return changed ? { ...bundle, matches } : bundle
+}
+
 export type TournamentPhase = 'setup' | 'running' | 'finished'
 
 /** Derived, never stored — see docs/schema.md. */

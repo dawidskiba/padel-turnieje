@@ -144,6 +144,16 @@ export function DeskPage() {
   const nextNumber = (currentRound?.number ?? 0) + 1
   const history = historyOf(state)
 
+  // The auto-propose effect runs *after* the first paint, so rendering the
+  // setup screen in the meantime shows it for one frame and then replaces it.
+  // Predict it here and render nothing instead of that flash.
+  const aboutToPropose =
+    phase === 'setup' &&
+    !proposal &&
+    !showSetup &&
+    !autoProposed.current &&
+    matchCount(state, 1) > 0
+
   function propose(isFinal: boolean) {
     if (!state) return
     setVariant(0)
@@ -203,7 +213,7 @@ export function DeskPage() {
 
   return (
     <>
-      {phase === 'setup' && !proposal ? (
+      {phase === 'setup' && !proposal && !aboutToPropose ? (
         <SetupState
           state={state}
           actions={{
