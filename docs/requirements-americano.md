@@ -117,6 +117,12 @@ Standings order:
 2. point difference (scored − conceded)
 3. matches won — draws count towards neither wins nor losses
 
+A rested round contributes its Rest Points to *both* scored and conceded, so it moves a
+participant's total but leaves their difference unchanged. Counting rest points as
+scored alone would hand everyone who sat out a large positive difference and corrupt the
+tie-break that difference exists to settle. A rest is likewise neither a win, a draw nor
+a loss.
+
 Participants still equal after all three share a position (`=3`, `=3`).
 
 The table shows position, name, points, difference and a W–D–L (`Z–R–P`) column.

@@ -135,6 +135,12 @@ create view standings as
   group by participant_id;
 ```
 
+A rested or credited round contributes its rest points to **both** `scored` and
+`conceded`, so it adds to the total while leaving difference untouched. Crediting them to
+`scored` alone would give everyone who sat out a large positive difference and corrupt
+the tie-break. Wins, draws and losses are counted only for `playing` rows — otherwise a
+rest, having equal scored and conceded, would register as a draw.
+
 A corrected score is reflected everywhere the instant it is written, and an undone round
 simply stops contributing. A stored total would have to be recomputed on score
 correction, round undo, participant addition and retirement — four paths, each of which
@@ -176,6 +182,13 @@ capability rather than a decoration. See
 
 Writes are owner-only, enforced by row-level security keyed on `owner_id`, not by hiding
 buttons in the UI.
+
+Revoking privileges from `anon` is not sufficient on its own: PostgreSQL grants `EXECUTE`
+on every new function to `PUBLIC`, so a migration that only revokes from named roles
+leaves every function anonymously callable. The migration revokes from `PUBLIC` as well
+and then grants back exactly what each role needs — including `generate_slug` and the
+`owns_*` helpers, which are evaluated as the calling role in a column default and in RLS
+policies respectively.
 
 The public page polls `public_tournament` every few seconds while its tab is visible.
 Realtime `postgres_changes` was not available to us: it respects RLS, and a client with
