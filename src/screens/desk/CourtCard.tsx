@@ -4,6 +4,7 @@
  */
 
 import type { Match } from '../../domain/types'
+import { formatSide } from '../../ui/format'
 import { cx } from '../../ui/primitives'
 
 export interface CourtCardProps {
@@ -17,7 +18,7 @@ export interface CourtCardProps {
 }
 
 function sideLabel(ids: string[], nameOf: (id: string) => string): string {
-  return ids.map(nameOf).join(' + ')
+  return formatSide(ids.map(nameOf))
 }
 
 function Side({

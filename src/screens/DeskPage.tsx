@@ -34,6 +34,7 @@ import {
   useUpdateSeed,
 } from '../data/hooks'
 import { matchIdFor } from '../data/mapping'
+import { formatSide } from '../ui/format'
 import { Sheet } from '../ui/Sheet'
 import { ShareBlock } from '../ui/QrCode'
 import { Notice, Spinner } from '../ui/primitives'
@@ -52,6 +53,13 @@ export function DeskPage() {
   const { view, isLoading, error } = useTournamentView(id)
 
   const [proposal, setProposal] = useState<ProposedRound | null>(null)
+  /** Bumped by "Przetasuj" to get a different equally valid arrangement. */
+  const [variant, setVariant] = useState(0)
+  /**
+   * Set when the organiser discards a proposal before the first round, which is
+   * the only way back to the setup screen now that it is skipped on arrival.
+   */
+  const [showSetup, setShowSetup] = useState(false)
   const [scoreTarget, setScoreTarget] = useState<(ScoreTarget & { side: 'a' | 'b' }) | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
@@ -92,6 +100,28 @@ export function DeskPage() {
    * until nothing is queued: finishing while a score is still pending would
    * publish a table that is about to change.
    */
+  /**
+   * Land on the courts, not on a summary of what was just typed.
+   *
+   * Creating a tournament arrives here in setup, and the organiser has no
+   * interest in re-reading their own configuration — they want to see the first
+   * round. Propose it immediately; discarding reveals the setup screen for the
+   * cases where something does need changing.
+   */
+  const autoProposed = useRef(false)
+  useEffect(() => {
+    autoProposed.current = false
+  }, [id])
+
+  useEffect(() => {
+    if (!view || view.phase !== 'setup') return
+    if (proposal || showSetup || autoProposed.current) return
+    if (matchCount(view.state, 1) === 0) return
+
+    autoProposed.current = true
+    setProposal(generateRound(view.state, { isFinal: false }))
+  }, [view, proposal, showSetup])
+
   const finishing = useRef(false)
   const finishMutate = settings.finish.mutate
   useEffect(() => {
@@ -116,13 +146,31 @@ export function DeskPage() {
 
   function propose(isFinal: boolean) {
     if (!state) return
+    setVariant(0)
+    setShowSetup(false)
     setProposal(generateRound(state, { isFinal }))
+  }
+
+  function reshuffle() {
+    if (!state || !proposal) return
+    const next = variant + 1
+    setVariant(next)
+    // Keep whoever is resting: the organiser may have chosen them deliberately,
+    // and reshuffling the pairings should not quietly undo that.
+    setProposal(
+      generateRound(state, {
+        isFinal: proposal.isFinal,
+        resting: proposal.resting,
+        variant: next,
+      }),
+    )
   }
 
   async function confirmProposal() {
     if (!proposal) return
     await createRound.mutateAsync(proposal)
     setProposal(null)
+    setVariant(0)
   }
 
   function openScoreSheet(roundNumber: number, courtId: string, side: 'a' | 'b') {
@@ -132,7 +180,7 @@ export function DeskPage() {
     const matchId = matchIdFor(bundle, roundNumber, courtId)
     if (!round || !match || !matchId) return
 
-    const sideNames = (ids: string[]) => ids.map(nameOf).join(' + ')
+    const sideNames = (ids: string[]) => formatSide(ids.map(nameOf))
 
     setScoreTarget({
       side,
@@ -155,7 +203,7 @@ export function DeskPage() {
 
   return (
     <>
-      {phase === 'setup' ? (
+      {phase === 'setup' && !proposal ? (
         <SetupState
           state={state}
           actions={{
@@ -194,7 +242,13 @@ export function DeskPage() {
               nextRound: () => propose(false),
               finalRound: () => propose(true),
               confirmProposal: () => void confirmProposal(),
-              discardProposal: () => setProposal(null),
+              discardProposal: () => {
+                setProposal(null)
+                setVariant(0)
+                // Before round 1 this is the only route back to setup.
+                if (phase === 'setup') setShowSetup(true)
+              },
+              reshuffleProposal: reshuffle,
               changeResting: () => setRestPickerOpen(true),
               openSettings: () => setSettingsOpen(true),
               share: () => setShareOpen(true),

@@ -35,12 +35,19 @@ export function formSides(
   players: Participant[],
   teamFormat: TeamFormat,
   history: History,
+  /**
+   * Tie-break order. Equal-cost options have to be resolved somehow, and doing
+   * it by entry order makes generation perfectly repeatable — which is why
+   * "discard and regenerate" produced the identical round every time. Vary this
+   * and the ties fall differently while the priorities above them are untouched.
+   */
+  tieBreak?: Map<string, number>,
 ): string[][] {
   if (teamFormat === 'teams') {
     return players.map((p) => [p.id])
   }
 
-  const entryOrder = new Map(players.map((p) => [p.id, p.entryOrder]))
+  const entryOrder = tieBreak ?? new Map(players.map((p) => [p.id, p.entryOrder]))
   const remaining = players.map((p) => p.id)
   const sides: string[][] = []
 
@@ -309,13 +316,14 @@ export function pairAmericano(
   courts: Court[],
   teamFormat: TeamFormat,
   history: History,
+  tieBreak?: Map<string, number>,
 ): ProposedMatch[] {
   const perSide = participantsPerSide(teamFormat)
   const capacity = courts.length * perSide * 2
   const playing = players.slice(0, capacity)
 
-  const entryOrder = new Map(playing.map((p) => [p.id, p.entryOrder]))
-  const sides = formSides(playing, teamFormat, history)
-  const matches = formMatches(sides, history, entryOrder, courts)
+  const order = tieBreak ?? new Map(playing.map((p) => [p.id, p.entryOrder]))
+  const sides = formSides(playing, teamFormat, history, order)
+  const matches = formMatches(sides, history, order, courts)
   return assignCourtsSpread(matches, courts, history)
 }

@@ -16,6 +16,7 @@ export interface RunningActions {
   finalRound: () => void
   confirmProposal: () => void
   discardProposal: () => void
+  reshuffleProposal: () => void
   changeResting: () => void
   openSettings: () => void
   share: () => void
@@ -130,6 +131,9 @@ export function RunningState({
               <Button variant="ghost" onClick={actions.discardProposal} disabled={saving}>
                 Odrzuć
               </Button>
+              <Button variant="secondary" onClick={actions.reshuffleProposal} disabled={saving}>
+                Przetasuj
+              </Button>
               <Button variant="primary" onClick={actions.confirmProposal} disabled={saving}>
                 {saving ? 'Zapisuję…' : `Zatwierdź rundę ${proposal.number}`}
               </Button>
@@ -137,8 +141,8 @@ export function RunningState({
           </div>
 
           <p className="mt-2 text-xs text-text-muted">
-            Pary ustala algorytm i nie da się ich edytować ręcznie — zmiana zepsułaby rotację
-            partnerów. Nie pasuje cała runda? Odrzuć i wygeneruj jeszcze raz.
+            Pary ustala algorytm i nie da się ich edytować pojedynczo — ręczna zmiana zepsułaby
+            rotację partnerów. „Przetasuj” daje inny, równie dobry układ.
           </p>
         </div>
       ) : (

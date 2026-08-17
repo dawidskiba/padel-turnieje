@@ -66,6 +66,11 @@ Three states, following the tournament's own lifecycle.
 
 ### Setup — before round 1
 
+Skipped on arrival. Creating a tournament lands on the first round's proposal
+instead: the organiser has just typed the configuration and has no interest in
+re-reading it. Discarding the proposal reveals this screen, for the cases where
+something genuinely needs changing before play starts.
+
 ```
 Środa Americano — przed startem                        [⚙]
 
@@ -89,13 +94,13 @@ an organiser to pin the draw and close the tab before play starts.
 ```
 Środa Americano — Runda 4                              [⚙]
 ┌─ KORTY ──────────────────────┐┌─ [Tabela] [Rundy] ──┐
-│  Kort 1   Ann + Dan          ││  1  Ann      88     │
+│  Kort 1   Ann & Dan          ││  1  Ann      88     │
 │           15  :  6      ✓    ││  2  Bob      81     │
-│           Bob + Cara         ││  3  Cara     74     │
+│           Bob & Cara         ││  3  Cara     74     │
 │                              ││  4  Dan      70     │
-│  Kort 2   Ewa + Hana         ││  5  Ewa      66     │
+│  Kort 2   Ewa & Hana         ││  5  Ewa      66     │
 │           __  :  __          ││  6  Fred     61     │
-│           Fred + Gus         ││  …                  │
+│           Fred & Gus         ││  …                  │
 │                              ││                     │
 │  Pauza:  Iga, Jan            ││                     │
 └──────────────────────────────┘└─────────────────────┘
@@ -133,19 +138,22 @@ the gear sheet, deliberately out of the way.
 
 ## Entering a score
 
+Sides are written with an ampersand — "Ann & Bob" reads as a partnership where
+"Ann + Bob" reads as arithmetic, on a screen otherwise full of numbers.
+
 The two **sides** of a match are tappable, not the court. Tapping one opens a popup for
 that side; choosing a number sets it and computes the opponent's score, since the two
 always sum to **Game Points**.
 
 ```
-┌─ Kort 2  ·  Ewa + Hana ──────────────┐
+┌─ Kort 2  ·  Ewa & Hana ──────────────┐
 │                                      │
 │    0   1   2   3   4   5   6         │
 │    7   8   9  10  11  12  13         │
 │   14  15  16  17  18  19  20         │
 │   21                                 │
 │                                      │
-│   Fred + Gus dostaną 21 − x          │
+│   Fred & Gus dostaną 21 − x          │
 └──────────────────────────────────────┘
 ```
 
@@ -165,22 +173,30 @@ courts panel, dimmed, with a sticky bar underneath:
 
 ```
 ┌─ KORTY  (propozycja rundy 5) ────────┐
-│  Kort 1   Ann + Dan                  │
-│           vs  Bob + Cara             │
-│  Kort 2   Ewa + Hana                 │
-│           vs  Fred + Gus             │
+│  Kort 1   Ann & Dan                  │
+│           vs  Bob & Cara             │
+│  Kort 2   Ewa & Hana                 │
+│           vs  Fred & Gus             │
 └──────────────────────────────────────┘
   Pauza:  Iga, Jan            [zmień]
-                     [zatwierdź rundę]
+        [odrzuć]  [przetasuj]  [zatwierdź rundę]
 ```
+
+`przetasuj` produces a different arrangement of the same round. Generation is
+deterministic, so without it "discard and generate again" returned the identical
+pairings — the variant only changes how ties are broken, leaving the pairing
+priorities untouched, so every reshuffle is equally valid. In practice five or
+six distinct arrangements are available.
 
 What the organiser approves is literally what they will see for the next twenty minutes —
 no translating a dialog into the real thing. Nothing reaches the database until
 `zatwierdź`, per [ADR-0003](./adr/0003-round-generation-in-client.md).
 
-`[zmień]` opens the rest picker. Pairings are not editable; a round that is wrong as a
-whole is undone and regenerated. Swapping a resting participant for a playing one warns
-if it unbalances the rest counts, and allows it anyway.
+`[zmień]` opens the rest picker. Individual pairings are not editable — a hand-made swap
+would break the partner-variety guarantee — so a round that is wrong as a whole gets
+reshuffled or discarded instead. Swapping a resting participant for a playing one warns
+if it unbalances the rest counts, and allows it anyway; the round is then regenerated
+around the new set of players rather than leaving pairings computed for the old one.
 
 ---
 
@@ -248,9 +264,9 @@ state, and changing it is one tap. Every later visit opens straight onto:
 ```
 Środa Americano — Runda 4
 
-▶ TY:  Kort 2,  z Bobem,  przeciw Cara + Dan
+▶ TY:  Kort 2,  z Bobem,  przeciw Cara & Dan
 
-  Kort 1   Ann + Ewa    15 : 6    Fred + Cara   ✓
+  Kort 1   Ann & Ewa    15 : 6    Fred & Cara   ✓
   Kort 2   — w trakcie —
   Pauza:   Iga, Jan
 

@@ -36,6 +36,38 @@ export interface GenerateOptions {
   resting?: string[]
   /** Injectable for deterministic tests; only Mexicano round 1 uses it. */
   rng?: Rng
+  /**
+   * Which of several equally good arrangements to produce.
+   *
+   * Generation is deterministic, so regenerating the same state returns the
+   * identical round — which made "discard and try again" look broken. Bumping
+   * the variant reshuffles how *ties* are resolved; the pairing priorities
+   * themselves are unaffected, so every variant is equally valid.
+   */
+  variant?: number
+}
+
+/** Small deterministic generator, so a variant is reproducible. */
+function makeRng(seed: number): Rng {
+  let value = (seed + 1) * 2654435761
+  return () => {
+    value = (value * 1664525 + 1013904223) % 4294967296
+    return value / 4294967296
+  }
+}
+
+/**
+ * Tie-break order for a given variant. Variant 0 is entry order, which keeps
+ * the first proposal stable and predictable; later variants permute it.
+ */
+function tieBreakOrder(players: Participant[], variant: number): Map<string, number> | undefined {
+  if (variant === 0) return undefined
+
+  const shuffled = shuffle(
+    players.map((p) => p.id),
+    makeRng(variant),
+  )
+  return new Map(shuffled.map((id, index) => [id, index]))
 }
 
 export function nextRoundNumber(state: TournamentState): number {
@@ -142,7 +174,9 @@ export function generateRound(
   state: TournamentState,
   options: GenerateOptions = {},
 ): ProposedRound {
-  const { isFinal = false, rng = Math.random } = options
+  const { isFinal = false, variant = 0 } = options
+  // A fresh Mexicano draw each time it is regenerated, unless a test pins it.
+  const rng = options.rng ?? (variant === 0 ? Math.random : makeRng(variant))
 
   const roundNumber = nextRoundNumber(state)
   const history = historyOf(state)
@@ -179,7 +213,13 @@ export function generateRound(
   } else if (state.config.format === 'mexicano') {
     matches = generateSeeded(state, roundNumber, players, courts, history, formula, true)
   } else {
-    matches = pairAmericano(players, courts, state.config.teamFormat, history)
+    matches = pairAmericano(
+      players,
+      courts,
+      state.config.teamFormat,
+      history,
+      tieBreakOrder(players, variant),
+    )
   }
 
   return { number: roundNumber, isFinal, matches, resting }

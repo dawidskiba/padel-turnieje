@@ -15,6 +15,7 @@ import { PUBLIC_POLL_MS, usePublicTournament } from '../data/hooks'
 import { describeViewer, readViewerName, viewerCandidates, writeViewerName } from '../data/publicView'
 import type { ViewerSituation } from '../data/publicView'
 import type { PublicTournament } from '../lib/database.types'
+import { formatSide } from '../ui/format'
 import { Button, Notice, Panel, Spinner, cx } from '../ui/primitives'
 
 function IdentityPicker({
@@ -110,11 +111,11 @@ function CurrentRound({ payload }: { payload: PublicTournament }) {
           >
             <p className="text-xs uppercase tracking-wide text-text-muted">{match.court}</p>
             <div className="mt-1 flex items-center justify-between gap-3">
-              <span className="text-text">{(match.side_a ?? []).join(' + ')}</span>
+              <span className="text-text">{formatSide(match.side_a ?? [])}</span>
               <span className="shrink-0 tabular-nums text-text">
                 {scored ? `${match.score_a} : ${match.score_b}` : '—'}
               </span>
-              <span className="text-right text-text">{(match.side_b ?? []).join(' + ')}</span>
+              <span className="text-right text-text">{formatSide(match.side_b ?? [])}</span>
             </div>
           </div>
         )
