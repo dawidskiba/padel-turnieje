@@ -27,6 +27,7 @@ export interface SettingsActions {
   undoLastRound: () => void
   finish: () => void
   reopen: () => void
+  deleteTournament: () => void
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -105,6 +106,7 @@ export function SettingsSheet({
 }) {
   const [name, setName] = useState(bundle.tournament.name)
   const [confirmUndo, setConfirmUndo] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState('')
 
   if (!open) return null
 
@@ -293,6 +295,37 @@ export function SettingsSheet({
               Zakończ turniej
             </Button>
           )}
+        </section>
+
+        <section className="space-y-3 border-t border-border pt-6">
+          <SectionTitle>Usuń turniej</SectionTitle>
+          <Notice tone="danger">
+            Usunięcie jest nieodwracalne. Zniknie cała historia: rundy, wyniki i tabela. Link
+            publiczny przestanie działać.
+          </Notice>
+
+          {/*
+            Typing the name is deliberate friction. Every other destructive
+            action here can be undone or redone; this one cannot, and it sits in
+            the same sheet as buttons the organiser taps routinely mid-match.
+          */}
+          <label className="block text-sm text-text">
+            Wpisz nazwę turnieju, żeby potwierdzić:
+            <TextInput
+              value={confirmDelete}
+              onChange={(event) => setConfirmDelete(event.target.value)}
+              placeholder={bundle.tournament.name}
+              className="mt-2"
+            />
+          </label>
+
+          <Button
+            variant="danger"
+            disabled={confirmDelete.trim() !== bundle.tournament.name}
+            onClick={actions.deleteTournament}
+          >
+            Usuń „{bundle.tournament.name}” na zawsze
+          </Button>
         </section>
       </div>
     </Sheet>

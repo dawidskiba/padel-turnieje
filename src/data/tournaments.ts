@@ -301,8 +301,14 @@ export async function reopenTournament(id: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
+/**
+ * Goes through an RPC rather than a plain delete: cascades reach courts and
+ * rounds independently, and if courts go first the matches still referencing
+ * them raise a foreign key violation. See the migration for why that constraint
+ * is worth keeping.
+ */
 export async function deleteTournament(id: string): Promise<void> {
-  const { error } = await supabase.from('tournaments').delete().eq('id', id)
+  const { error } = await supabase.rpc('delete_tournament', { p_tournament: id })
   if (error) throw new Error(error.message)
 }
 

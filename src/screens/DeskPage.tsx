@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { historyOf } from '../domain/history'
 import { generateRound } from '../domain/round'
@@ -48,6 +48,7 @@ import { SetupState } from './desk/SetupState'
 
 export function DeskPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const { view, isLoading, error } = useTournamentView(id)
 
   const [proposal, setProposal] = useState<ProposedRound | null>(null)
@@ -271,6 +272,16 @@ export function DeskPage() {
           reopen: () => {
             settings.reopen.mutate()
             setSettingsOpen(false)
+          },
+          deleteTournament: () => {
+            settings.remove.mutate(undefined, {
+              // Leave the desk only once the delete has actually landed, so a
+              // failure is visible here rather than looking like success.
+              onSuccess: () => {
+                setSettingsOpen(false)
+                navigate('/turnieje', { replace: true })
+              },
+            })
           },
         }}
       />
