@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 
 import { useSession } from './data/auth'
 import { CreateTournamentPage } from './screens/CreateTournamentPage'
+import { DeskPage } from './screens/DeskPage'
 import { NotFoundPage } from './screens/NotFoundPage'
 import { SignInPage } from './screens/SignInPage'
 import { TournamentsPage } from './screens/TournamentsPage'
@@ -43,7 +44,7 @@ export default function App() {
       >
         <Route path="/turnieje" element={<TournamentsPage />} />
         <Route path="/turnieje/nowy" element={<CreateTournamentPage />} />
-        <Route path="/turnieje/:id" element={<Soon what="Widok stolika" />} />
+        <Route path="/turnieje/:id" element={<DeskPage />} />
       </Route>
 
       <Route element={<PublicLayout />}>

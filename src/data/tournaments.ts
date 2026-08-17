@@ -219,6 +219,19 @@ export async function unretireParticipant(participantId: string): Promise<void> 
   if (error) throw new Error(error.message)
 }
 
+/** Mexicano round-1 pinning, edited from the setup screen. */
+export async function updateSeed(
+  participantId: string,
+  seedCourtId: string | null,
+  seedSide: 'a' | 'b' | null,
+): Promise<void> {
+  const { error } = await supabase
+    .from('participants')
+    .update({ seed_court_id: seedCourtId, seed_side: seedSide })
+    .eq('id', participantId)
+  if (error) throw new Error(error.message)
+}
+
 export async function addCourt(
   tournamentId: string,
   name: string,

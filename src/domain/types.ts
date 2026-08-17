@@ -120,6 +120,31 @@ export function participantsPerSide(teamFormat: TeamFormat): number {
   return teamFormat === 'individual' ? 2 : 1
 }
 
+/**
+ * A round is complete when every court has a result. Until then the tournament
+ * cannot advance — and a final round cannot close the tournament.
+ */
+export function isRoundComplete(round: Round): boolean {
+  return (
+    round.matches.length > 0 &&
+    round.matches.every((match) => match.scoreA !== null && match.scoreB !== null)
+  )
+}
+
+/**
+ * The organiser picks one side's score; the other follows, because the two
+ * always sum to Game Points. Returns the pair in (a, b) order whichever side
+ * was tapped.
+ */
+export function splitScore(
+  side: Side,
+  value: number,
+  gamePoints: number,
+): { scoreA: number; scoreB: number } {
+  const scoreA = side === 'a' ? value : gamePoints - value
+  return { scoreA, scoreB: gamePoints - scoreA }
+}
+
 export function isActiveInRound(participant: Participant, roundNumber: number): boolean {
   if (participant.joinedRound > roundNumber) return false
   if (participant.retiredAfterRound !== null && roundNumber > participant.retiredAfterRound) {

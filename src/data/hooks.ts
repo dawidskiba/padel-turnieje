@@ -122,6 +122,18 @@ export function useUnretireParticipant(tournamentId: string | undefined) {
   })
 }
 
+export function useUpdateSeed(tournamentId: string | undefined) {
+  const invalidate = useInvalidate(tournamentId)
+  return useMutation({
+    mutationFn: (input: {
+      participantId: string
+      seedCourtId: string | null
+      seedSide: 'a' | 'b' | null
+    }) => api.updateSeed(input.participantId, input.seedCourtId, input.seedSide),
+    onSuccess: invalidate,
+  })
+}
+
 export function useCourtMutations(tournamentId: string | undefined) {
   const invalidate = useInvalidate(tournamentId)
 
