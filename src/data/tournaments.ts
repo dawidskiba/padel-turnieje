@@ -29,14 +29,27 @@ function unwrap<T>(result: { data: T | null; error: { message: string } | null }
   return result.data
 }
 
-export async function listTournaments(): Promise<TournamentRow[]> {
+/**
+ * A list row carries its round count so the list can tell setup from running
+ * without loading each tournament. PostgREST returns an embedded aggregate as a
+ * one-element array.
+ */
+export interface TournamentListRow extends TournamentRow {
+  rounds: Array<{ count: number }>
+}
+
+export async function listTournaments(): Promise<TournamentListRow[]> {
   return unwrap(
     await supabase
       .from('tournaments')
-      .select('*')
+      .select('*, rounds(count)')
       .order('created_at', { ascending: false })
-      .returns<TournamentRow[]>(),
+      .returns<TournamentListRow[]>(),
   )
+}
+
+export function roundCountOf(row: TournamentListRow): number {
+  return row.rounds?.[0]?.count ?? 0
 }
 
 /**

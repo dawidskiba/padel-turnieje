@@ -2,8 +2,10 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import type { ReactNode } from 'react'
 
 import { useSession } from './data/auth'
+import { CreateTournamentPage } from './screens/CreateTournamentPage'
 import { NotFoundPage } from './screens/NotFoundPage'
 import { SignInPage } from './screens/SignInPage'
+import { TournamentsPage } from './screens/TournamentsPage'
 import { AppLayout, PublicLayout } from './ui/AppLayout'
 import { Spinner } from './ui/primitives'
 
@@ -39,8 +41,8 @@ export default function App() {
           </RequireAuth>
         }
       >
-        <Route path="/turnieje" element={<Soon what="Moje turnieje" />} />
-        <Route path="/turnieje/nowy" element={<Soon what="Nowy turniej" />} />
+        <Route path="/turnieje" element={<TournamentsPage />} />
+        <Route path="/turnieje/nowy" element={<CreateTournamentPage />} />
         <Route path="/turnieje/:id" element={<Soon what="Widok stolika" />} />
       </Route>
 
