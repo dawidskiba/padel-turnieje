@@ -112,13 +112,32 @@ with tabular figures, letting the logo carry the personality.
 Tabular figures matter specifically: scores and points sit in columns that must not
 shuffle as digits change.
 
-## Assets still needed
+## Assets
 
-The supplied file is a 6000px PNG with the background baked in. For the app:
+Three vertical lockups, all 6000px PNG:
 
-- a horizontal lockup with a transparent background, for the header
-- the mark alone (circle and stem), for the favicon and small spaces
-- SVG for all of them, if the designer has it
+| File | Background | Ink | Use |
+|---|---|---|---|
+| `GLOWNE_PION_SZMARAGD_TLO.png` | `#003333`, opaque | white | dark theme |
+| `GLOWNE_PION_BIALE_TLO.png` | white, opaque | emerald | light theme, pure white only |
+| `GLOWNE_PION_BLANK.png` | transparent | emerald | light theme, any light surface |
 
-Until they arrive, the header can crop this file — harmless on the dark theme, wrong on
-the light one.
+The dark theme's baked-in background is an exact match for the `bg` token, so
+`SZMARAGD_TLO` sits seamlessly against it — but only against `bg`. There is no
+transparent light-ink variant, so the logo cannot currently be placed on `surface`
+(`#0B3F3F`) in dark mode.
+
+Inside `BIALE_TLO` the sage circle sits on white at the same 2.30:1 measured above. It is
+decorative rather than informational, so it passes — but it reads faint, and that is the
+asset itself rather than anything the app does.
+
+Still missing:
+
+- a **horizontal** lockup — all three are vertical (`PION`), which is the wrong shape for
+  an app header
+- the **mark alone** (circle and stem) for the favicon and small spaces
+- a transparent variant with **white ink**, for dark surfaces
+- **SVG**, if the designer has it
+
+At 6000px and ~250 KB each, none of these should be shipped to a phone as-is; the app
+needs downscaled derivatives whatever else arrives.
