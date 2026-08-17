@@ -1,10 +1,14 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vitejs.dev/config/
+// Test configuration lives in vitest.config.ts, not here: Vitest bundles its
+// own rollup-based Vite, whose plugin types conflict with Vite 8's rolldown
+// ones, so a single shared config cannot type-check.
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true, // pozwala otworzyć aplikację z innych urządzeń w tej samej sieci (np. tabletu) podczas developmentu
+    // Lets the app be opened from another device on the same network — a tablet
+    // at the club desk — while developing.
+    host: true,
   },
 })

@@ -13,6 +13,18 @@
     <meta name="theme-color" content="#003333" media="(prefers-color-scheme: dark)" />
 
     <title>Garden Padel — Turnieje</title>
+
+    <script>
+      // Apply the stored theme before first paint. Without this the page renders
+      // in the system theme for a frame and then snaps to the chosen one, which
+      // is a white flash for a dark-mode user in a dim club.
+      try {
+        var stored = localStorage.getItem('padel.theme')
+        if (stored === 'light' || stored === 'dark') {
+          document.documentElement.setAttribute('data-theme', stored)
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
