@@ -33,7 +33,11 @@ Rejected:
 
 Warned, but allowed:
 
-- more than a third of participants resting each round
+- a whole match's worth of participants resting each round — 4 individuals or 2 teams.
+  That is precisely the point at which another court would put more of them on it, which
+  a percentage threshold does not tell the organiser. (An earlier draft said "more than a
+  third"; its own worked example — 22 players on 4 courts, 6 resting — is 27% and could
+  never have fired.)
 - more courts than the roster can ever fill
 
 ---
