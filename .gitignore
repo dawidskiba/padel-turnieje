@@ -1,0 +1,15 @@
+node_modules
+dist
+dist-ssr
+*.local
+
+# środowiskowe - nigdy nie commitujemy kluczy
+.env
+.env.local
+.env.*.local
+
+# edytor / system
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+*.log
