@@ -5,6 +5,7 @@ import { useSession } from './data/auth'
 import { CreateTournamentPage } from './screens/CreateTournamentPage'
 import { DeskPage } from './screens/DeskPage'
 import { NotFoundPage } from './screens/NotFoundPage'
+import { PublicPage } from './screens/PublicPage'
 import { SignInPage } from './screens/SignInPage'
 import { TournamentsPage } from './screens/TournamentsPage'
 import { AppLayout, PublicLayout } from './ui/AppLayout'
@@ -25,11 +26,6 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
-/** Placeholder until the screens land. */
-function Soon({ what }: { what: string }) {
-  return <p className="text-text-muted">{what} — w budowie.</p>
-}
-
 export default function App() {
   return (
     <Routes>
@@ -48,7 +44,7 @@ export default function App() {
       </Route>
 
       <Route element={<PublicLayout />}>
-        <Route path="/t/:slug" element={<Soon what="Widok publiczny" />} />
+        <Route path="/t/:slug" element={<PublicPage />} />
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />
