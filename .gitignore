@@ -3,13 +3,14 @@ dist
 dist-ssr
 *.local
 
-# środowiskowe - nigdy nie commitujemy kluczy
+# environment - never commit keys
 .env
 .env.local
 .env.*.local
 
-# edytor / system
+# editor / system
 .vscode/*
 !.vscode/extensions.json
+.idea/
 .DS_Store
 *.log
