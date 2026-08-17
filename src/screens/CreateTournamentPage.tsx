@@ -156,7 +156,7 @@ export function CreateTournamentPage() {
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto max-w-2xl space-y-5 pb-24">
+    <form onSubmit={submit} className="mx-auto max-w-2xl space-y-5 pb-12">
       <h1 className="text-2xl font-medium text-text">Nowy turniej</h1>
 
       <Section title="Podstawy">
@@ -356,7 +356,12 @@ export function CreateTournamentPage() {
         </Notice>
       ) : null}
 
-      <div className="sticky bottom-4 flex justify-end">
+      {/*
+        Static, not sticky. The form is short enough to read in one go, and a
+        floating button sat over the courts and seeding sections while they were
+        being filled in.
+      */}
+      <div className="flex justify-center pt-2">
         <Button
           type="submit"
           variant="primary"
