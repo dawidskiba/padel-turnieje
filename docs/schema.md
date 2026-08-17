@@ -213,6 +213,20 @@ create function create_round(p_tournament uuid, p_round jsonb) returns uuid
 So the database never contains an unconfirmed or half-written round, and no reader needs
 a status filter. See [ADR-0003](./adr/0003-round-generation-in-client.md).
 
+Two other writes span more than one table and get the same treatment:
+
+```sql
+create function create_tournament(p_tournament jsonb) returns table (id uuid, slug text)
+create function add_participant(p_tournament uuid, p_name text, p_credit boolean) returns uuid
+```
+
+`create_tournament` writes the tournament, its courts and its roster together. A
+participant pinned for a Mexicano draw references its court by **index into the courts
+array**, because the courts do not exist yet when the client builds the payload.
+
+`add_participant` writes the participant and, when the organiser leaves the credit box
+ticked, one `credited` row per round already played.
+
 ### Idempotency
 
 Retries on flaky wifi are made harmless by the constraints themselves:
