@@ -1,18 +1,18 @@
-# Supabase — schemat i migracje
+# Supabase — schema and migrations
 
-Ten folder trzyma definicję bazy danych jako kod (SQL), żeby była wersjonowana razem z aplikacją.
+This folder keeps the database definition as code (SQL), so it is versioned together with the app.
 
-Na razie jest pusty — schemat tabel (turnieje, gracze, mecze, wyniki) dodamy po ustaleniu
-wymagań biznesowych (zasady Americano/Mexicano, sposób liczenia punktacji).
+It is empty for now — the table schema (tournaments, players, matches, results) will be added once the
+business requirements are settled (Americano/Mexicano rules, how scoring is calculated).
 
-## Jak to podłączyć (jednorazowo)
+## How to hook it up (one-time)
 
-1. Zainstaluj Supabase CLI: `npm install -g supabase`
-2. Zaloguj się: `supabase login`
-3. Połącz ten folder z projektem Supabase, który założysz na supabase.com:
-   `supabase link --project-ref TWOJ_PROJECT_REF`
-4. Nowe migracje twórz komendą: `supabase migration new nazwa_migracji`
-   — utworzy plik SQL w `supabase/migrations/`, w którym opisujesz zmiany w tabelach.
-5. Wypchnij migracje na żywą bazę: `supabase db push`
+1. Install the Supabase CLI: `npm install -g supabase`
+2. Log in: `supabase login`
+3. Link this folder to the Supabase project you create on supabase.com:
+   `supabase link --project-ref YOUR_PROJECT_REF`
+4. Create new migrations with: `supabase migration new migration_name`
+   — this creates an SQL file in `supabase/migrations/` where you describe the table changes.
+5. Push the migrations to the live database: `supabase db push`
 
-Dzięki temu cała struktura bazy danych jest w Git, a nie tylko "w głowie" albo w dashboardzie.
+This way the whole database structure lives in Git, not just "in your head" or in the dashboard.

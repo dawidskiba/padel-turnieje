@@ -1,88 +1,88 @@
-# Turnieje Padlowe
+# Padel Tournaments
 
-Aplikacja webowa do tworzenia i zarządzania turniejami padlowymi (Americano, Mexicano).
-Działa w przeglądarce — na laptopie i na tablecie z Androidem.
+Web app for creating and managing padel tournaments (Americano, Mexicano).
+Runs in the browser — on a laptop and on an Android tablet.
 
-**Stack:** React + Vite + TypeScript + Tailwind CSS (frontend) · Supabase / PostgreSQL (baza danych) · Vercel/Netlify (hosting)
+**Stack:** React + Vite + TypeScript + Tailwind CSS (frontend) · Supabase / PostgreSQL (database) · Vercel/Netlify (hosting)
 
-## Wymagania
+## Requirements
 
-- [Node.js](https://nodejs.org/) w wersji 18 lub nowszej (sprawdź: `node -v`)
-- Konto na [supabase.com](https://supabase.com) (darmowe)
-- Konto na [GitHub](https://github.com) i [Vercel](https://vercel.com) lub [Netlify](https://netlify.com) (do wdrożenia)
+- [Node.js](https://nodejs.org/) 22 or newer (check: `node -v`). The repo pins the version in `.nvmrc` — run `nvm use` to switch.
+- A [supabase.com](https://supabase.com) account (free)
+- A [GitHub](https://github.com) account and [Vercel](https://vercel.com) or [Netlify](https://netlify.com) (for deployment)
 
-## 1. Instalacja zależności
+## 1. Install dependencies
 
 ```bash
 npm install
 ```
 
-## 2. Konfiguracja Supabase
+## 2. Supabase setup
 
-1. Załóż nowy projekt na [supabase.com](https://supabase.com/dashboard).
-2. Wejdź w **Project Settings → API** i skopiuj `Project URL` oraz klucz `anon public`.
-3. Skopiuj plik `.env.example` do `.env`:
+1. Create a new project at [supabase.com](https://supabase.com/dashboard).
+2. Go to **Project Settings → API** and copy the `Project URL` and the `anon public` key.
+3. Copy `.env.example` to `.env`:
    ```bash
    cp .env.example .env
    ```
-4. Wklej do `.env` swój URL i klucz.
+4. Paste your URL and key into `.env`.
 
-Struktura tabel (turnieje, gracze, mecze) zostanie dodana w `supabase/migrations` po ustaleniu
-zasad punktacji Americano/Mexicano — patrz `supabase/README.md`.
+The table structure (tournaments, players, matches) will be added in `supabase/migrations` once the
+Americano/Mexicano scoring rules are settled — see `supabase/README.md`.
 
-## 3. Uruchomienie lokalne
+## 3. Running locally
 
 ```bash
 npm run dev
 ```
 
-Aplikacja wystartuje pod `http://localhost:5173`. Dzięki opcji `host: true` w `vite.config.ts`
-możesz ją też otworzyć z tabletu w tej samej sieci Wi-Fi, pod adresem, który Vite wypisze
-w konsoli (coś w stylu `http://192.168.x.x:5173`) — przydatne do testowania na tablecie
-zanim jeszcze wdrożysz aplikację na Vercel/Netlify.
+The app starts at `http://localhost:5173`. Thanks to `host: true` in `vite.config.ts` you can also
+open it from a tablet on the same Wi-Fi network, at the address Vite prints in the console
+(something like `http://192.168.x.x:5173`) — handy for testing on a tablet before you deploy
+to Vercel/Netlify.
 
-## 4. Wersjonowanie w Git
+## 4. Git versioning
 
 ```bash
 git init
 git add .
-git commit -m "Szkielet projektu: React + Vite + Supabase"
+git commit -m "Project skeleton: React + Vite + Supabase"
 ```
 
-Następnie załóż puste repozytorium na GitHubie i połącz je z lokalnym folderem:
+Then create an empty repository on GitHub and connect it to your local folder:
 
 ```bash
-git remote add origin https://github.com/TWOJ-LOGIN/padel-turnieje.git
+git remote add origin https://github.com/YOUR-USERNAME/padel-turnieje.git
 git branch -M main
 git push -u origin main
 ```
 
-## 5. Wdrożenie (hosting)
+## 5. Deployment (hosting)
 
-1. Wejdź na [vercel.com](https://vercel.com), zaloguj się przez GitHub.
-2. Kliknij "Add New Project", wybierz repo `padel-turnieje`.
-3. W ustawieniach projektu (Environment Variables) dodaj `VITE_SUPABASE_URL` i
-   `VITE_SUPABASE_ANON_KEY` — te same wartości co w Twoim lokalnym `.env`.
-4. Deploy — od tej pory każdy `git push` na `main` automatycznie aktualizuje wersję online.
+1. Go to [vercel.com](https://vercel.com) and sign in with GitHub.
+2. Click "Add New Project" and pick the `padel-turnieje` repo.
+3. In the project settings (Environment Variables) add `VITE_SUPABASE_URL` and
+   `VITE_SUPABASE_ANON_KEY` — the same values as in your local `.env`.
+4. Deploy — from then on every `git push` to `main` automatically updates the live version.
 
-## Struktura projektu
+## Project structure
 
 ```
 padel-turnieje/
 ├── src/
-│   ├── main.tsx              # punkt wejściowy React
-│   ├── App.tsx                # główny komponent (na razie placeholder)
-│   ├── index.css              # style + Tailwind
+│   ├── main.tsx               # React entry point
+│   ├── App.tsx                # main component (placeholder for now)
+│   ├── index.css              # styles + Tailwind
 │   └── lib/
-│       └── supabaseClient.ts  # inicjalizacja klienta Supabase
+│       └── supabaseClient.ts  # Supabase client initialization
 ├── supabase/
-│   ├── migrations/            # schemat bazy danych jako SQL (do uzupełnienia)
+│   ├── migrations/            # database schema as SQL (to be filled in)
 │   └── README.md
 ├── .env.example
 └── package.json
 ```
 
-## Co dalej
+## What's next
 
-Ten szkielet celowo nie zawiera jeszcze logiki turniejowej — to następny krok, po ustaleniu
-wymagań biznesowych (format Americano/Mexicano, liczba rund, sposób rotacji par, punktacja).
+This skeleton deliberately contains no tournament logic yet — that's the next step, once the
+business requirements are settled (Americano/Mexicano format, number of rounds, pair rotation, scoring).
