@@ -11,7 +11,7 @@ import { useState } from 'react'
 
 import type { TournamentBundle, TournamentPhase } from '../../data/mapping'
 import type { TournamentState } from '../../domain/types'
-import { defaultCourtName } from '../../domain/validation'
+import { defaultCourtName, joinCreditPerRound } from '../../domain/validation'
 import { Sheet } from '../../ui/Sheet'
 import { Button, Notice, TextInput, cx } from '../../ui/primitives'
 
@@ -36,11 +36,12 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function AddParticipant({
   roundsPlayed,
-  restPoints,
+  creditPerRound,
   onAdd,
 }: {
   roundsPlayed: number
-  restPoints: number
+  /** What one missed round pays — less than a rest, see joinCreditPerRound. */
+  creditPerRound: number
   onAdd: (name: string, credit: boolean) => void
 }) {
   const [name, setName] = useState('')
@@ -74,9 +75,10 @@ function AddParticipant({
           />
           <span>
             Dolicz punkty za {missed} {missed === 1 ? 'pominiętą rundę' : 'pominięte rundy'} (
-            {missed * restPoints} pkt).
+            {missed * creditPerRound} pkt, po {creditPerRound} za rundę).
             <span className="block text-text-muted">
-              Bez tego nowa osoba startuje z zera i nie ma szans w klasyfikacji.
+              Bez tego nowa osoba startuje z zera i nie ma szans w klasyfikacji. Za rundę,
+              w której kogoś nie było, liczymy mniej niż za pauzę.
             </span>
           </span>
         </label>
@@ -212,7 +214,10 @@ export function SettingsSheet({
           {locked ? null : (
             <AddParticipant
               roundsPlayed={roundsPlayed}
-              restPoints={state.config.restPoints}
+              creditPerRound={joinCreditPerRound(
+                state.config.gamePoints,
+                state.config.restPoints,
+              )}
               onAdd={actions.addParticipant}
             />
           )}

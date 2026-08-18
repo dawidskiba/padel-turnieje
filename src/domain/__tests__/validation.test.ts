@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   defaultCourtName,
   defaultRestPoints,
+  joinCreditPerRound,
   errorsOf,
   isSubmittable,
   validateDraft,
@@ -26,18 +27,41 @@ function draft(overrides: Partial<DraftTournament> = {}): DraftTournament {
 const messages = (d: DraftTournament) => validateDraft(d).map((i) => i.message)
 
 describe('rest points default', () => {
-  it('is half the game points, rounded down', () => {
-    // Rounded down, not up: with a 21-point target, 11 is the winning score, so
-    // rounding up paid a rested player as though they had narrowly won.
-    expect(defaultRestPoints(21)).toBe(10)
+  it('is half the game points, rounded up', () => {
+    // Sitting out because the courts were full is nobody's fault, so a rest gets
+    // the benefit of the doubt.
+    expect(defaultRestPoints(21)).toBe(11)
     expect(defaultRestPoints(16)).toBe(8)
-    expect(defaultRestPoints(11)).toBe(5)
+    expect(defaultRestPoints(11)).toBe(6)
+  })
+})
+
+describe('credit for rounds missed before joining', () => {
+  it('is half the game points, rounded down — one less than a rest on odd targets', () => {
+    // A rest is a round you turned up for. A missed round is one you were not
+    // there for, and paying the winning score for it arrives as though the
+    // latecomer had won every round they missed.
+    expect(joinCreditPerRound(21, 11)).toBe(10)
+    expect(joinCreditPerRound(11, 6)).toBe(5)
   })
 
-  it('never pays a rest more than a losing score', () => {
+  it('matches a rest exactly on even targets, which halve cleanly', () => {
+    expect(joinCreditPerRound(16, 8)).toBe(8)
+  })
+
+  it('is never worth more than an actual rest', () => {
+    // Otherwise a harsh rest setting could be beaten by not turning up.
     for (const gamePoints of [11, 16, 21, 31, 99]) {
-      const rest = defaultRestPoints(gamePoints)
-      expect(rest).toBeLessThan(gamePoints - rest + 1)
+      for (const restPoints of [0, 1, 3, 5, 11, 20, 99]) {
+        expect(joinCreditPerRound(gamePoints, restPoints)).toBeLessThanOrEqual(restPoints)
+      }
+    }
+  })
+
+  it('is never worth more than a losing score', () => {
+    for (const gamePoints of [11, 16, 21, 31, 99]) {
+      const credit = joinCreditPerRound(gamePoints, gamePoints)
+      expect(credit).toBeLessThanOrEqual(gamePoints - credit)
     }
   })
 })

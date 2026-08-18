@@ -42,10 +42,10 @@ const restPointsInput = (c: HTMLElement) =>
   c.querySelector<HTMLInputElement>('#restPoints')!
 
 describe('create form', () => {
-  it('starts on the documented defaults: 21 points, 10 for a rest', async () => {
+  it('starts on the documented defaults: 21 points, 11 for a rest', async () => {
     const container = await mount()
     expect(buttonWithText(container, '21').getAttribute('aria-pressed')).toBe('true')
-    expect(restPointsInput(container).value).toBe('10')
+    expect(restPointsInput(container).value).toBe('11')
   })
 
   it('tracks rest points at half the target until the organiser sets them', async () => {
@@ -55,7 +55,7 @@ describe('create form', () => {
     expect(restPointsInput(container).value).toBe('8')
 
     await click(buttonWithText(container, '11'))
-    expect(restPointsInput(container).value).toBe('5')
+    expect(restPointsInput(container).value).toBe('6')
   })
 
   it('refuses to submit an empty form', async () => {

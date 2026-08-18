@@ -8,6 +8,7 @@
  */
 
 import type { StandingRow, TournamentState } from './types'
+import { joinCreditPerRound } from './validation'
 
 interface Tally {
   points: number
@@ -63,11 +64,13 @@ export function computeStandings(state: TournamentState): StandingRow[] {
       t.conceded += state.config.restPoints
       t.rests++
     }
+    // A credited round pays less than a rest, and is deliberately not counted as
+    // one — see joinCreditPerRound and RoundParticipantStatus.
+    const joinCredit = joinCreditPerRound(state.config.gamePoints, state.config.restPoints)
     for (const id of round.credited) {
       const t = tally(id)
-      t.scored += state.config.restPoints
-      t.conceded += state.config.restPoints
-      // deliberately not a rest: see RoundParticipantStatus
+      t.scored += joinCredit
+      t.conceded += joinCredit
     }
   }
 

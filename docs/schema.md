@@ -102,9 +102,11 @@ storing:
   rather than inferred.
 
 The third status, `credited`, is the join credit for a late arrival. It is deliberately
-**not** `resting`: it earns the same points, but must not count towards the rest rota —
-otherwise a latecomer would look like the most-rested participant in the tournament and
-be scheduled to play every remaining round.
+**not** `resting` for two reasons: it must not count towards the rest rota, or a latecomer
+would look like the most-rested participant in the tournament and be scheduled to play
+every remaining round — and it pays less. A rest pays `rest_points`; a credited round pays
+`least(rest_points, floor(game_points / 2))`, which is 10 against 11 on a 21-point target.
+Resting is turning up and finding no court free; being credited is not having been there.
 
 ### Soft removal
 
@@ -135,8 +137,7 @@ create view standings as
   group by participant_id;
 ```
 
-A rested or credited round contributes its rest points to **both** `scored` and
-`conceded`, so it adds to the total while leaving difference untouched. Crediting them to
+A rested or credited round contributes its value to **both** `scored` and `conceded`, so it adds to the total while leaving difference untouched. Crediting them to
 `scored` alone would give everyone who sat out a large positive difference and corrupt
 the tie-break. Wins, draws and losses are counted only for `playing` rows — otherwise a
 rest, having equal scored and conceded, would register as a draw.

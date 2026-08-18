@@ -60,7 +60,7 @@ describe('standings', () => {
     }
   })
 
-  it('credits a late joiner without counting it as a rest', () => {
+  it('credits a late joiner less than a rest, and not as a rest', () => {
     const state = makeState({
       participants: roster('Ann', 'Bob', 'Cara', 'Dan'),
       courts: courts(1),
@@ -78,7 +78,8 @@ describe('standings', () => {
     }
 
     const ewa = computeStandings(withJoiner).find((r) => r.participantId === 'ewa')!
-    expect(ewa.points).toBe(11)
+    // 10, not 11: a round somebody was not present for pays less than a rest.
+    expect(ewa.points).toBe(10)
     // Not a rest: otherwise the rota would think Ewa is the most-rested player
     // in the tournament and schedule her to play every remaining round.
     expect(ewa.rests).toBe(0)

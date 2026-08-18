@@ -94,3 +94,80 @@ describe('domain standings match the SQL view', () => {
     expect(total).toBe(matches * GAME_POINTS * PER_SIDE + rests * REST_POINTS)
   })
 })
+
+/**
+ * A rest and a credited round pay different amounts, computed in two places: the
+ * `participant_round_points` SQL view and computeStandings. The expected values
+ * are the actual output of that view against Postgres 15 for this scenario:
+ *
+ *   5 players, 1 court, 21 game points, 11 rest points
+ *   round 1: A + B  15 : 6  C + D,  Rester resting
+ *   Joiner added afterwards, credited for round 1
+ *
+ *   Rester  11 pts   (turned up, no court)
+ *   Joiner  10 pts   (was not there)
+ */
+describe('a rest and a missed round are priced differently', () => {
+  it('reproduces the database on both', () => {
+    const participants = [
+      ...roster('A', 'B', 'C', 'D', 'Rester'),
+      { ...roster('Joiner')[0], id: 'joiner', entryOrder: 6, joinedRound: 2 },
+    ]
+
+    const state = makeState({
+      participants,
+      courts: courts(1),
+      gamePoints: 21,
+      restPoints: 11,
+      rounds: [
+        {
+          number: 1,
+          isFinal: false,
+          matches: [
+            { courtId: 'kort1', sideA: ['a', 'b'], sideB: ['c', 'd'], scoreA: 15, scoreB: 6 },
+          ],
+          resting: ['rester'],
+          credited: ['joiner'],
+        },
+      ],
+    })
+
+    const rows = computeStandings(state)
+    const points = (name: string) => rows.find((r) => r.name === name)!.points
+
+    expect(points('Rester')).toBe(11)
+    expect(points('Joiner')).toBe(10)
+    // Neither moves point difference: both land on scored and conceded alike.
+    expect(rows.find((r) => r.name === 'Rester')!.difference).toBe(0)
+    expect(rows.find((r) => r.name === 'Joiner')!.difference).toBe(0)
+  })
+
+  it('caps the credit at the rest value, as the view does with least()', () => {
+    // rest_points 3 on a 21-point target: floor(21/2) is 10, but a missed round
+    // must not beat turning up, so both pay 3.
+    const state = makeState({
+      participants: [
+        ...roster('A', 'B', 'C', 'D', 'Rester'),
+        { ...roster('Joiner')[0], id: 'joiner', entryOrder: 6, joinedRound: 2 },
+      ],
+      courts: courts(1),
+      gamePoints: 21,
+      restPoints: 3,
+      rounds: [
+        {
+          number: 1,
+          isFinal: false,
+          matches: [
+            { courtId: 'kort1', sideA: ['a', 'b'], sideB: ['c', 'd'], scoreA: 15, scoreB: 6 },
+          ],
+          resting: ['rester'],
+          credited: ['joiner'],
+        },
+      ],
+    })
+
+    const rows = computeStandings(state)
+    expect(rows.find((r) => r.name === 'Rester')!.points).toBe(3)
+    expect(rows.find((r) => r.name === 'Joiner')!.points).toBe(3)
+  })
+})

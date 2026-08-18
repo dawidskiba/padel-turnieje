@@ -18,7 +18,7 @@ The create form collects:
 | Team Format | `Indywidualny` (default) or `Drużynowy`. |
 | Participants | Unique names within the tournament. In `Indywidualny` a participant is a player; in `Drużynowy` it is a team entered as a single name — the app does not know who is in the team. |
 | Game Points | Presets 11 / 16 / 21 plus a custom number. **21 selected by default.** Allowed range 1–99. |
-| Rest Points | Number input, defaults to `floor(GamePoints / 2)` — 21→10, 16→8, 11→5. Rounded **down**: with a 21-point target 11 is the winning score, so rounding up paid a rested round like a narrow win, and a late joiner credited for missed rounds arrived as though they had won every one. Follows Game Points until the organiser types a value, then stops tracking. |
+| Rest Points | Number input, defaults to `ceil(GamePoints / 2)` — 21→11, 16→8, 11→6. Follows Game Points until the organiser types a value, then stops tracking. |
 | Courts | Unique names within the tournament. Defaults generated as `Kort 1`, `Kort 2`, … incrementing from 1. |
 
 ### 1.1 Validation
@@ -148,7 +148,8 @@ Standings order:
 3. matches won — draws count towards neither wins nor losses
 
 A rested round contributes its Rest Points to *both* scored and conceded, so it moves a
-participant's total but leaves their difference unchanged. Counting rest points as
+participant's total but leaves their difference unchanged. A credited round behaves the
+same way, at the lower credit value. Counting rest points as
 scored alone would hand everyone who sat out a large positive difference and corrupt the
 tie-break that difference exists to settle. A rest is likewise neither a win, a draw nor
 a loss.
@@ -164,7 +165,7 @@ The table shows position, name, points, difference and a W–D–L (`Z–R–P`)
 | Change | Behaviour |
 |---|---|
 | Correct a score | Any match, any round. Standings recompute. |
-| Add a participant | Joins from the next round. Organiser chooses: credit Rest Points for rounds missed (default, pre-ticked) or start from zero. |
+| Add a participant | Joins from the next round. Organiser chooses: credit the rounds missed (default, pre-ticked) or start from zero. A missed round pays `min(RestPoints, floor(GamePoints / 2))` — 10 of 21, against 11 for a rest. Less than a rest on purpose: a rest is a round you turned up for and found the courts full, a missed round is one you were not there for, and paying the winning score for it arrives as though the latecomer had won every round they missed. Capped at the rest value so a deliberately harsh rest setting cannot be beaten by not turning up. |
 | Retire a participant | Keeps points earned, stays in the standings marked `RET`, earns nothing further, excluded from later rounds and from the rest rota. |
 | Add / remove / rename a court | Takes effect from the next round; the current round keeps its assignments. Court count changes how many participants rest. |
 | Undo a round | Most recent round only. Discards its schedule and results; the tournament returns to the end of the previous round. |

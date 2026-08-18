@@ -64,8 +64,8 @@ A named entrant in a Tournament — a player in Individual format, a team in Tea
 format. Names are unique within a Tournament.
 
 A Participant may join after the Tournament has started, in which case the Organiser
-chooses whether they are credited Rest Points for the Rounds they missed (the default)
-or start from zero. A Participant may also retire: they keep the points they earned,
+chooses whether they are credited for the Rounds they missed (the default) or start from
+zero. A Participant may also retire: they keep the points they earned,
 stay in the Standing marked as retired, earn nothing further, and are excluded from
 later Rounds.
 
@@ -101,9 +101,13 @@ values allowed; default 21.
 ## Rest Points
 
 Points credited to a Participant for a Round in which they do not play, so that sitting
-out is not a penalty, without being better than playing. Defaults to half the Game Points
-rounded **down**, until the Organiser sets it explicitly: with a target of 21 that is 10,
-the losing score, rather than 11, which is the winning one.
+out is not a penalty. Defaults to half the Game Points rounded **up**, until the Organiser
+sets it explicitly.
+
+A Round credited to a Participant who joined later is worth less: half the Game Points
+rounded **down**, and never more than a Rest. Resting means turning up and finding no court
+free; a missed Round means not being there at all, and paying the winning score for it would
+have a latecomer arrive as though they had won every Round they missed.
 
 ## Rest Rota
 

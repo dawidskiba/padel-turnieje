@@ -36,19 +36,29 @@ export const MAX_GAME_POINTS = 99
 export const SCORE_GRID_LIMIT = 30
 
 /**
- * Rest points track half the game points, rounded **down**, until the organiser
- * sets them: 21 → 10, 16 → 8, 11 → 5.
- *
- * Rounding up was too generous. With a 21-point target, 11 is the winning score,
- * so a rested round paid the same as a narrow win — and a late joiner credited
- * for missed rounds arrived as though they had won every one of them. Rounding
- * down makes it the losing score instead: sitting out still costs you something,
- * which is the honest reading of not having played.
- *
- * Even targets are unaffected, being exactly halvable.
+ * Rest points default to half the Game Points, rounded **up**: 21 → 11, 16 → 8,
+ * 11 → 6. Sitting out because the courts are full is nobody's fault, so it pays
+ * the benefit of the doubt.
  */
 export function defaultRestPoints(gamePoints: number): number {
-  return Math.floor(gamePoints / 2)
+  return Math.ceil(gamePoints / 2)
+}
+
+/**
+ * What one missed round is worth to somebody who joined late — half the Game
+ * Points rounded **down**, and never more than an actual rest.
+ *
+ * Deliberately less generous than resting. A rest is a round you turned up for
+ * and were not given a court; a missed round is one you were not there for at
+ * all, and crediting the upper half arrives as though they had won every one of
+ * them. With a 21-point target that is 10 rather than 11 — the losing score
+ * rather than the winning one.
+ *
+ * Capped at the rest value so a harsh rest setting cannot be beaten by not
+ * turning up: with rest points set to 3, a missed round is worth 3, not 10.
+ */
+export function joinCreditPerRound(gamePoints: number, restPoints: number): number {
+  return Math.min(restPoints, Math.floor(gamePoints / 2))
 }
 
 export function defaultCourtName(index: number): string {
