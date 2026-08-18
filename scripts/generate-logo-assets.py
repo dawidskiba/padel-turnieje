@@ -104,6 +104,25 @@ def main():
     for size, name in ((512, "favicon-512.png"), (180, "apple-touch-icon.png"), (32, "favicon-32.png")):
         save(favicon, os.path.join(PUBLIC, name), size)
 
+    # Installed-app icons. Android draws these at whatever size it likes, so both
+    # 192 and 512 are required by the manifest spec.
+    print("app icons:")
+    for size in (192, 512):
+        save(favicon, os.path.join(PUBLIC, f"icon-{size}.png"), size)
+
+    # A maskable icon is cropped to whatever shape the launcher prefers — circle,
+    # squircle, teardrop — so anything outside the middle 80% can be cut off. The
+    # standard favicon padding is far too tight for that, hence a separate render
+    # with the mark well inside the safe zone.
+    maskable_side = round(max(width, height) * 2.1)
+    maskable = Image.new("RGBA", (maskable_side, maskable_side), (0, 51, 51, 255))
+    maskable.alpha_composite(
+        white_mark,
+        ((maskable_side - width) // 2, (maskable_side - height) // 2),
+    )
+    print("maskable icon (extra padding for launcher cropping):")
+    save(maskable, os.path.join(PUBLIC, "icon-maskable-512.png"), 512)
+
 
 if __name__ == "__main__":
     main()

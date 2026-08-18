@@ -5,6 +5,9 @@
 # Client-side routing: the server has no /turnieje/:id or /t/:slug to serve, so
 # every path must fall back to index.html and let the router decide. Without
 # this, only "/" works and every shared tournament link 404s.
+# Real files are served first; this only catches paths the filesystem does not
+# have. Restricting it to extensionless paths means a missing asset 404s honestly
+# instead of returning the HTML shell with a 200, which hides broken references.
 [[redirects]]
   from = "/*"
   to = "/index.html"

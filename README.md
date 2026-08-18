@@ -117,6 +117,33 @@ For several named organisers without toggling settings each time, Supabase's *be
 created* auth hook can check an allowlist table and reject anyone else. Not implemented —
 one owner per tournament is deliberate, see `docs/adr/0001-single-writer-organiser-public-read.md`.
 
+## Running it as an app on the tablet
+
+The app is installable, so it can run fullscreen with no browser chrome — which is what
+you want on the desk, where a URL bar and tab strip are wasted rows and an accidental swipe
+should not navigate away.
+
+On the Android tablet:
+
+1. Open the production URL in Chrome.
+2. Menu (⋮) → **Add to Home screen** / **Install app**.
+3. Launch it from the home screen. It opens fullscreen, with the tree icon.
+
+`public/manifest.webmanifest` is what makes that work: `display: fullscreen`, the emerald
+`#003333` splash and theme colour, and icons at 192, 512 and a separate *maskable* 512.
+The maskable one carries extra padding because Android crops launcher icons to whatever
+shape it likes — circle, squircle, teardrop — and anything outside the middle 80% can be
+cut away.
+
+Chrome shows its own install prompt only for sites with a service worker. There isn't one,
+deliberately: caching an app shell means reasoning about stale bundles after every deploy,
+and the requirements settled on resilient-online rather than offline (see
+`docs/requirements-americano.md` §6). Adding from the menu works regardless and still gives
+a fullscreen launch.
+
+Each device signs in separately, so the tablet needs its own login. Password sign-in exists
+precisely for this: no inbox needed at the club.
+
 ## Project structure
 
 ```
