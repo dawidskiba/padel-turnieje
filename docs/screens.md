@@ -122,14 +122,28 @@ same interaction as a live one.
 ```
 Środa Americano — zakończony
 
-                  🥈  2  Bob   141
-        🥇  1  Ann   147                🥉  3  Cara  138
+┌──────────────────────────────────────┐
+│                 🥇                   │
+│             ZWYCIĘZCA                │
+│               Ann                    │
+│              147 pkt                 │
+└──────────────────────────────────────┘
 
-        4  Dan   131      5  Ewa   127      6  Fred  119
-        …
+┌─ 🥈 2. Bob      141 ─┐┌─ 🥉 3. Cara  138 ─┐
 
-        [udostępnij wyniki]                      [⚙]
+  4  Dan   131      5  Ewa   127   …
+
+        [udostępnij wyniki]            [⚙]
 ```
+
+The winner reads first, alone, and much larger than anyone else. An earlier version was a
+literal podium — second, first, third across a row with the winner raised slightly — and
+it read as a row of three equals: the eye lands on whoever is leftmost, and the offsets
+were far too subtle to say otherwise. Reading order is now ranking order.
+
+Joint first place is possible, since positions are shared when points, difference and
+matches won all tie. The card says `Remis na 1. miejscu` and names everyone tied, rather
+than crowning one of them.
 
 The evening gets an ending rather than merely stopping. Reopening the tournament is in
 the gear sheet, deliberately out of the way.

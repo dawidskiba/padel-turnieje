@@ -5,33 +5,65 @@
  */
 
 import type { StandingRow } from '../../domain/types'
-import { Button, Panel, cx } from '../../ui/primitives'
+import { Button, Panel } from '../../ui/primitives'
 
 const MEDALS = ['🥇', '🥈', '🥉']
 
+/**
+ * The winner reads first, alone, and much larger than anyone else.
+ *
+ * This started as a literal podium — second, first, third across a row, with the
+ * winner raised slightly. It looked like a podium and read like a row of three
+ * equals: at a glance the eye lands on whoever is leftmost, and the offsets were
+ * far too subtle to say otherwise. Reading order should simply be ranking order.
+ *
+ * Joint first place is possible: the standings share a position when points,
+ * difference and matches won all tie, and a screen that crowns one of them is
+ * wrong rather than merely unclear.
+ */
 function Podium({ rows }: { rows: StandingRow[] }) {
-  const top = rows.slice(0, 3)
-  if (top.length === 0) return null
+  if (rows.length === 0) return null
 
-  // Second, first, third — so the winner stands in the middle where a podium
-  // puts them, rather than reading as a plain list.
-  const order = top.length >= 3 ? [1, 0, 2] : top.map((_, i) => i)
-  const heights = ['pt-8', 'pt-0', 'pt-12']
+  const winners = rows.filter((row) => row.position === rows[0].position)
+  const runnersUp = rows
+    .filter((row) => row.position !== rows[0].position)
+    .filter((row) => row.position <= 3)
 
   return (
-    <div className="flex items-end justify-center gap-3 sm:gap-6">
-      {order.map((index) => {
-        const row = top[index]
-        if (!row) return null
-        return (
-          <div key={row.participantId} className={cx('text-center', heights[index])}>
-            <div className="text-3xl sm:text-4xl">{MEDALS[index]}</div>
-            <div className="mt-2 text-sm text-text-muted">{index + 1}</div>
-            <div className="text-base font-medium text-text sm:text-lg">{row.name}</div>
-            <div className="text-2xl tabular-nums text-accent">{row.points}</div>
-          </div>
-        )
-      })}
+    <div className="space-y-4">
+      <div className="rounded-2xl border-2 border-accent bg-accent/10 px-6 py-7 text-center">
+        <div className="text-5xl leading-none">{MEDALS[0]}</div>
+        <p className="mt-3 text-xs uppercase tracking-widest text-accent">
+          {winners.length > 1 ? `Remis na 1. miejscu` : 'Zwycięzca'}
+        </p>
+
+        {winners.map((winner) => (
+          <p
+            key={winner.participantId}
+            className="mt-1 text-3xl font-medium leading-tight text-text sm:text-4xl"
+          >
+            {winner.name}
+          </p>
+        ))}
+
+        <p className="mt-2 text-2xl tabular-nums text-accent">{rows[0].points} pkt</p>
+      </div>
+
+      {runnersUp.length > 0 ? (
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {runnersUp.map((row) => (
+            <li
+              key={row.participantId}
+              className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3"
+            >
+              <span className="text-2xl leading-none">{MEDALS[row.position - 1] ?? ''}</span>
+              <span className="text-sm text-text-muted">{row.position}.</span>
+              <span className="flex-1 truncate text-text">{row.name}</span>
+              <span className="tabular-nums text-text-muted">{row.points}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   )
 }
