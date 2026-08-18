@@ -85,6 +85,19 @@ Nothing else needs configuring. The database migrations are already applied, and
 key is safe to expose — it grants no table access at all, and the only function it can call
 is the read-only `public_tournament` (see `docs/adr/0002-public-read-via-rpc.md`).
 
+### Signing in
+
+Two ways in, and neither creates an account:
+
+- **Password** — the default. No email round trip, so it works at the club desk when the
+  tournament is about to start and nobody wants to go hunting through an inbox.
+- **Magic link** — a one-time email link, kept as the route for a forgotten password.
+
+Set an organiser's password from **Authentication → Users → …→ Reset password**, or create
+the user there with one. The built-in mailer allows only a couple of messages an hour,
+which is the reason password sign-in exists at all: hitting that limit while logged out
+otherwise means waiting.
+
 ### Restricting who can sign in
 
 Magic-link auth is open by default: any address can request a link and gets its own

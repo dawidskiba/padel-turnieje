@@ -176,8 +176,14 @@ Format. Editable throughout: name, roster, courts.
 
 ## 5. Access
 
-- The organiser signs in with a magic link (no password) and owns their tournaments.
-  `Moje turnieje` lists their past and active events across devices.
+- The organiser signs in with a password, or a magic link if the password has been
+  forgotten, and owns their tournaments. `Moje turnieje` lists their past and active events
+  across devices.
+
+  Magic links alone were the original decision, and running the app proved it wrong: the
+  built-in mailer allows a couple of emails an hour, so being logged out at the club with a
+  tournament due to start meant waiting. Neither method creates an account — organisers are
+  added from the Supabase dashboard.
 - Every tournament has a public link. Anyone holding it sees a live read-only view and
   needs no account.
 - Only the owner can write. Write access is enforced server-side, not just hidden in

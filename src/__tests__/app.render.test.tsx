@@ -31,15 +31,19 @@ async function render(path: string): Promise<HTMLElement> {
 }
 
 describe('app mounts', () => {
-  it('shows the sign-in form at the root', async () => {
+  it('shows the sign-in form at the root, password first', async () => {
     const container = await render('/')
-    expect(container.textContent).toContain('Wyślij link')
+    expect(container.textContent).toContain('Zaloguj się')
     expect(container.querySelector('input[type="email"]')).not.toBeNull()
+    expect(container.querySelector('input[type="password"]')).not.toBeNull()
   })
 
   it('offers all three theme choices, not just a light/dark switch', async () => {
     const container = await render('/')
-    const radios = container.querySelectorAll('[role="radio"]')
+    // Scoped to the theme group: the sign-in screen has a second radiogroup for
+    // choosing password or magic link.
+    const group = container.querySelector('[aria-label="Motyw"]')!
+    const radios = group.querySelectorAll('[role="radio"]')
     expect(radios).toHaveLength(3)
     // Each has a decorative glyph plus a screen-reader label; check the label.
     expect([...radios].map((r) => r.querySelector('.sr-only')?.textContent)).toEqual([
@@ -53,7 +57,7 @@ describe('app mounts', () => {
 
   it('sends an unauthenticated visitor away from the desk', async () => {
     const container = await render('/turnieje/whatever')
-    expect(container.textContent).toContain('Wyślij link')
+    expect(container.querySelector('input[type="password"]')).not.toBeNull()
   })
 
   it('renders the not-found page for an unknown path', async () => {

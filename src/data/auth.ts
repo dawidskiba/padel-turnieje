@@ -77,6 +77,35 @@ export async function sendMagicLink(email: string): Promise<void> {
   if (error) throw new Error(describeAuthError(error.message))
 }
 
+/**
+ * Password sign-in, for the case magic links handle badly: standing at the club
+ * desk, logged out, tournament about to start, inbox not to hand. No email round
+ * trip and no mailer rate limit.
+ *
+ * There is deliberately no sign-up here. Accounts are created and passwords set
+ * from the Supabase dashboard, which keeps the roster of organisers a decision
+ * rather than a side effect of typing an address.
+ */
+export async function signInWithPassword(email: string, password: string): Promise<void> {
+  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) throw new Error(describePasswordError(error.message))
+}
+
+export function describePasswordError(message: string): string {
+  const lower = message.toLowerCase()
+
+  if (lower.includes('invalid login credentials')) {
+    return 'Nieprawidłowy e-mail lub hasło.'
+  }
+  if (lower.includes('email not confirmed')) {
+    return 'Ten adres nie został jeszcze potwierdzony.'
+  }
+  if (lower.includes('rate limit') || lower.includes('too many requests')) {
+    return 'Za dużo prób. Poczekaj kilka minut i spróbuj ponownie.'
+  }
+  return 'Nie udało się zalogować. Spróbuj ponownie.'
+}
+
 export async function signOut(): Promise<void> {
   await supabase.auth.signOut()
 }
