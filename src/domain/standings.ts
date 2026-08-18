@@ -9,9 +9,12 @@
 
 import type { StandingRow, TournamentState } from './types'
 import { joinCreditPerRound } from './validation'
+import { courtRanks, creditValue, playedValue, restValue, scaleFor } from './scoring'
 
 interface Tally {
+  /** The ranking currency: raw points, or court-weighted points. */
   points: number
+  /** Always the actual match points, so the tie-break stays comparable. */
   scored: number
   conceded: number
   wins: number
@@ -35,7 +38,12 @@ export function computeStandings(state: TournamentState): StandingRow[] {
     return t
   }
 
+  const byCourts = state.config.scoring === 'courts'
+
   for (const round of state.rounds) {
+    const scale = scaleFor(round, state.config.neutralRounds)
+    const ranks = byCourts ? courtRanks(state, round) : null
+
     for (const match of round.matches) {
       if (match.scoreA === null || match.scoreB === null) continue
       const sides = [
@@ -45,8 +53,19 @@ export function computeStandings(state: TournamentState): StandingRow[] {
       for (const side of sides) {
         for (const id of side.members) {
           const t = tally(id)
+          // scored/conceded stay raw whatever the scheme, so point difference
+          // means the same thing in both and can serve as the tie-break.
           t.scored += side.scored
           t.conceded += side.conceded
+          t.points += byCourts
+            ? playedValue(
+                ranks!.get(match.courtId) ?? 1,
+                side.scored,
+                side.conceded,
+                state.config.gamePoints,
+                scale,
+              )
+            : side.scored
           if (side.scored > side.conceded) t.wins++
           else if (side.scored === side.conceded) t.draws++
           else t.losses++
@@ -62,6 +81,7 @@ export function computeStandings(state: TournamentState): StandingRow[] {
       const t = tally(id)
       t.scored += state.config.restPoints
       t.conceded += state.config.restPoints
+      t.points += byCourts ? restValue(scale) : state.config.restPoints
       t.rests++
     }
     // A credited round pays less than a rest, and is deliberately not counted as
@@ -71,6 +91,7 @@ export function computeStandings(state: TournamentState): StandingRow[] {
       const t = tally(id)
       t.scored += joinCredit
       t.conceded += joinCredit
+      t.points += byCourts ? creditValue(scale) : joinCredit
     }
   }
 
@@ -81,7 +102,8 @@ export function computeStandings(state: TournamentState): StandingRow[] {
       name: participant.name,
       entryOrder: participant.entryOrder,
       retired: participant.retiredAfterRound !== null,
-      points: t.scored,
+      points: t.points,
+      rawPoints: t.scored,
       difference: t.scored - t.conceded,
       wins: t.wins,
       draws: t.draws,
@@ -115,6 +137,9 @@ export function compareStandingRows(a: StandingRow, b: StandingRow): number {
     b.points - a.points ||
     b.difference - a.difference ||
     b.wins - a.wins ||
+    // Under court scoring the integers are small and ties are common, so raw
+    // points earn their keep as a further tie-break before entry order.
+    b.rawPoints - a.rawPoints ||
     a.entryOrder - b.entryOrder
   )
 }

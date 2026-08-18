@@ -7,13 +7,16 @@
  */
 
 import { participantsPerMatch } from './types'
-import type { Format, PairingFormula, TeamFormat } from './types'
+import type { Format, PairingFormula, Scoring, TeamFormat } from './types'
+
+/** Opening rounds where the court does not count. More than this is unusual. */
+export const MAX_NEUTRAL_ROUNDS = 10
 
 export type IssueLevel = 'error' | 'warning'
 
 export interface Issue {
   level: IssueLevel
-  field: 'name' | 'participants' | 'courts' | 'gamePoints' | 'restPoints'
+  field: 'name' | 'participants' | 'courts' | 'gamePoints' | 'restPoints' | 'neutralRounds'
   /** Polish, ready to show. */
   message: string
 }
@@ -25,6 +28,8 @@ export interface DraftTournament {
   gamePoints: number
   restPoints: number
   pairingFormula: PairingFormula | null
+  scoring: Scoring
+  neutralRounds: number
   participants: string[]
   courts: string[]
 }
@@ -133,6 +138,27 @@ export function validateDraft(draft: DraftTournament): Issue[] {
       field: 'restPoints',
       message: 'Punkty za pauzę nie mogą być ujemne.',
     })
+  }
+
+  if (draft.scoring === 'courts') {
+    if (
+      !Number.isInteger(draft.neutralRounds) ||
+      draft.neutralRounds < 0 ||
+      draft.neutralRounds > MAX_NEUTRAL_ROUNDS
+    ) {
+      issues.push({
+        level: 'error',
+        field: 'neutralRounds',
+        message: `Rundy bez wagi kortu: liczba od 0 do ${MAX_NEUTRAL_ROUNDS}.`,
+      })
+    } else if (draft.neutralRounds === 0) {
+      issues.push({
+        level: 'warning',
+        field: 'neutralRounds',
+        message:
+          'Pierwsza runda Mexicano jest losowana, więc kort nic wtedy nie mówi o poziomie. Przy 0 rundach neutralnych szczęśliwy los w pierwszej rundzie od razu daje przewagę.',
+      })
+    }
   }
 
   // Warnings — everything below is allowed, and the organiser may mean it.

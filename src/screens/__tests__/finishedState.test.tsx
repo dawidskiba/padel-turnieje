@@ -18,6 +18,7 @@ function row(
     entryOrder: position,
     retired: false,
     points,
+    rawPoints: points,
     difference: 0,
     wins: 0,
     draws: 0,

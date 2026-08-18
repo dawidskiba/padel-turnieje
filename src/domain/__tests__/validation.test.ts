@@ -18,6 +18,8 @@ function draft(overrides: Partial<DraftTournament> = {}): DraftTournament {
     gamePoints: 21,
     restPoints: 11,
     pairingFormula: null,
+    scoring: 'points',
+    neutralRounds: 1,
     participants: ['Ann', 'Bob', 'Cara', 'Dan'],
     courts: ['Kort 1'],
     ...overrides,

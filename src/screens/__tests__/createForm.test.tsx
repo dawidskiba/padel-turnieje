@@ -97,4 +97,51 @@ describe('create form', () => {
     expect(container.textContent).toContain('Kort 2')
     expect(container.textContent).toContain('Korty (2)')
   })
+
+  it('offers the scoring choice for Mexicano only', async () => {
+    const container = await mount()
+    // Americano spreads players across courts deliberately, so which court
+    // somebody is on says nothing about the opposition.
+    expect(container.textContent).not.toContain('Liczenie punktów')
+
+    await click(buttonWithText(container, 'Mexicano'))
+    expect(container.textContent).toContain('Liczenie punktów')
+    expect(container.textContent).toContain('Z wagą kortu')
+  })
+
+  it('defaults to raw points, so nothing changes unless asked', async () => {
+    const container = await mount()
+    await click(buttonWithText(container, 'Mexicano'))
+
+    const raw = buttonWithText(container, 'Zdobyte punkty — klasycznie, suma wyników')
+    expect(raw.getAttribute('aria-checked')).toBe('true')
+    // The neutral-rounds field is meaningless until court weighting is on.
+    expect(container.querySelector('#neutralRounds')).toBeNull()
+  })
+
+  it('reveals the neutral-rounds field once court weighting is chosen', async () => {
+    const container = await mount()
+    await click(buttonWithText(container, 'Mexicano'))
+    await click(buttonWithText(container, 'Z wagą kortu — wygrana na Korcie 1 warta więcej'))
+
+    const field = container.querySelector<HTMLInputElement>('#neutralRounds')!
+    expect(field).not.toBeNull()
+    // One by default: round 1 of a Mexicano is a blind draw.
+    expect(field.value).toBe('1')
+  })
+
+  it('warns when court weighting starts from the very first round', async () => {
+    const container = await mount()
+    await click(buttonWithText(container, 'Mexicano'))
+    await click(buttonWithText(container, 'Z wagą kortu — wygrana na Korcie 1 warta więcej'))
+
+    const field = container.querySelector<HTMLInputElement>('#neutralRounds')!
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
+    await act(async () => {
+      setter.call(field, '0')
+      field.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    expect(container.textContent).toContain('szczęśliwy los w pierwszej rundzie')
+  })
 })

@@ -143,6 +143,17 @@ export function SettingsSheet({
 
         <section className="space-y-3">
           <SectionTitle>Punktacja</SectionTitle>
+          {state.config.format === 'mexicano' && state.config.scoring === 'courts' ? (
+            <p className="text-sm text-text-muted">
+              Punkty z wagą kortu: wygrana na wyższym korcie warta więcej.{' '}
+              {state.config.neutralRounds === 0
+                ? 'Waga kortu liczy się od pierwszej rundy.'
+                : `Pierwsze ${state.config.neutralRounds} ${
+                    state.config.neutralRounds === 1 ? 'runda' : 'rundy'
+                  } bez wagi kortu.`}
+            </p>
+          ) : null}
+
           {phase === 'setup' ? (
             <p className="text-sm text-text-muted">
               Mecz do {state.config.gamePoints} pkt · pauza {state.config.restPoints} pkt. Można

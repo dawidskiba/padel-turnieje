@@ -22,7 +22,7 @@ import {
 } from '../domain/validation'
 import type { DraftTournament, Issue } from '../domain/validation'
 import { PAIRING_FORMULAS, participantsPerSide } from '../domain/types'
-import type { Format, PairingFormula, TeamFormat } from '../domain/types'
+import type { Format, PairingFormula, Scoring, TeamFormat } from '../domain/types'
 import { ChipInput } from '../ui/ChipInput'
 import { SeedingEditor } from '../ui/SeedingEditor'
 import type { Seeds } from '../ui/SeedingEditor'
@@ -117,6 +117,8 @@ export function CreateTournamentPage() {
   // then stop tracking — otherwise their choice would be silently overwritten.
   const [restPointsTouched, setRestPointsTouched] = useState(false)
   const [pairingFormula, setPairingFormula] = useState<PairingFormula>('1+4v2+3')
+  const [scoring, setScoring] = useState<Scoring>('points')
+  const [neutralRounds, setNeutralRounds] = useState(1)
   const [participants, setParticipants] = useState<string[]>([])
   const [courts, setCourts] = useState<string[]>([defaultCourtName(0), defaultCourtName(1)])
   const [seeds, setSeeds] = useState<Seeds>({})
@@ -135,16 +137,30 @@ export function CreateTournamentPage() {
       gamePoints,
       restPoints,
       pairingFormula: format === 'mexicano' && teamFormat === 'individual' ? pairingFormula : null,
+      scoring: format === 'mexicano' ? scoring : 'points',
+      neutralRounds,
       participants,
       courts,
     }),
-    [name, format, teamFormat, gamePoints, restPoints, pairingFormula, participants, courts],
+    [
+      name,
+      format,
+      teamFormat,
+      gamePoints,
+      restPoints,
+      pairingFormula,
+      scoring,
+      neutralRounds,
+      participants,
+      courts,
+    ],
   )
 
   const issues = useMemo(() => validateDraft(draft), [draft])
   const blocking = errorsOf(issues)
   const isCustomPoints = !GAME_POINT_PRESETS.includes(gamePoints)
   const showFormula = format === 'mexicano' && teamFormat === 'individual'
+  const showScoring = format === 'mexicano'
   const showSeedingSection = format === 'mexicano'
 
   async function submit(event: React.FormEvent) {
@@ -266,6 +282,63 @@ export function CreateTournamentPage() {
           />
         </Field>
         <IssueList issues={issues} field="restPoints" />
+
+        {showScoring ? (
+          <Field
+            label="Liczenie punktów"
+            hint="W Mexicano kort mówi, z kim grasz — a nie każdy kort płaci tyle samo."
+          >
+            <div className="space-y-2">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={scoring === 'points'}
+                onClick={() => setScoring('points')}
+                className={cx(
+                  'block w-full rounded-lg border px-4 py-2.5 text-left text-sm transition-colors',
+                  scoring === 'points'
+                    ? 'border-accent bg-accent text-on-accent'
+                    : 'border-border bg-surface text-text hover:border-accent',
+                )}
+              >
+                Zdobyte punkty — klasycznie, suma wyników
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={scoring === 'courts'}
+                onClick={() => setScoring('courts')}
+                className={cx(
+                  'block w-full rounded-lg border px-4 py-2.5 text-left text-sm transition-colors',
+                  scoring === 'courts'
+                    ? 'border-accent bg-accent text-on-accent'
+                    : 'border-border bg-surface text-text hover:border-accent',
+                )}
+              >
+                Z wagą kortu — wygrana na Korcie 1 warta więcej
+              </button>
+            </div>
+          </Field>
+        ) : null}
+
+        {showScoring && scoring === 'courts' ? (
+          <Field
+            label="Rundy bez wagi kortu"
+            htmlFor="neutralRounds"
+            hint="Pierwsze rundy Mexicano są losowane, więc kort nic wtedy nie mówi o poziomie. W tych rundach każdy kort płaci tyle samo — liczy się tylko wynik."
+          >
+            <TextInput
+              id="neutralRounds"
+              type="number"
+              min={0}
+              max={10}
+              value={neutralRounds}
+              onChange={(event) => setNeutralRounds(Number(event.target.value))}
+              className="w-28"
+            />
+          </Field>
+        ) : null}
+        <IssueList issues={issues} field="neutralRounds" />
 
         {showFormula ? (
           <Field

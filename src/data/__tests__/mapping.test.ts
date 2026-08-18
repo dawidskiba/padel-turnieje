@@ -15,6 +15,8 @@ function bundle(overrides: Partial<TournamentBundle> = {}): TournamentBundle {
       game_points: 21,
       rest_points: 11,
       pairing_formula: null,
+      scoring: 'points',
+      neutral_rounds: 1,
       created_at: '2026-08-17T17:00:00Z',
       finished_at: null,
     },
@@ -58,6 +60,8 @@ describe('mapping rows to domain state', () => {
       gamePoints: 21,
       restPoints: 11,
       pairingFormula: null,
+      scoring: 'points',
+      neutralRounds: 1,
     })
   })
 

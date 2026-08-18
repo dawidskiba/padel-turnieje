@@ -16,6 +16,8 @@ function bundle(): TournamentBundle {
       game_points: 21,
       rest_points: 11,
       pairing_formula: null,
+      scoring: 'points',
+      neutral_rounds: 1,
       created_at: '2026-08-17T17:00:00Z',
       finished_at: null,
     },

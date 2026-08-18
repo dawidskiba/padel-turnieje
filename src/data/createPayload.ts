@@ -27,6 +27,10 @@ export function buildCreatePayload(
       draft.format === 'mexicano' && draft.teamFormat === 'individual'
         ? draft.pairingFormula
         : null,
+    // Court weighting is Mexicano's alone: Americano deliberately spreads players
+    // across courts, so which court they are on says nothing about the opposition.
+    scoring: draft.format === 'mexicano' ? draft.scoring : 'points',
+    neutral_rounds: draft.neutralRounds,
     courts,
     participants: draft.participants
       .map((participant) => participant.trim())

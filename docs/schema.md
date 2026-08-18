@@ -23,6 +23,8 @@ tournaments
   game_points         int
   rest_points         int
   pairing_formula     text null            -- mexicano + individual only
+  scoring             points | courts      -- 'points' unless a court-weighted mexicano
+  neutral_rounds      int                  -- opening rounds exempt from court weighting
   created_at          timestamptz
   finished_at         timestamptz null
 
@@ -123,16 +125,19 @@ Standings are a view, never a stored column:
 
 ```sql
 create view participant_round_points as
-  -- points scored and conceded per participant per round,
-  -- from matches for status 'playing',
-  -- from tournaments.rest_points for 'resting' and 'credited'
+  -- per participant per round: scored, conceded, and the ranking `value`
+  --   scored/conceded from matches for 'playing',
+  --                   from tournaments.rest_points for 'resting',
+  --                   from least(rest_points, floor(game_points/2)) for 'credited'
+  --   value = scored under 'points', or the court-weighted figure under 'courts'
 
 create view standings as
   select participant_id,
-         sum(scored)              as points,
+         sum(value)               as points,
          sum(scored - conceded)   as difference,
          count(*) filter (where scored > conceded) as wins,
-         count(*) filter (where scored = conceded) as draws
+         count(*) filter (where scored = conceded) as draws,
+         sum(scored)              as raw_points
   from participant_round_points
   group by participant_id;
 ```
@@ -141,6 +146,23 @@ A rested or credited round contributes its value to **both** `scored` and `conce
 `scored` alone would give everyone who sat out a large positive difference and corrupt
 the tie-break. Wins, draws and losses are counted only for `playing` rows — otherwise a
 rest, having equal scored and conceded, would register as a draw.
+
+`scored` and `conceded` stay in raw match points under both schemes, so `difference` and
+`raw_points` mean the same thing either way and remain usable as tie-breaks. Only `value`
+changes: `sum(value)` is what a standing is ordered by.
+
+### Court weighting in SQL
+
+The `courts` scheme needs two things a per-match row does not carry, both computed in CTEs:
+
+- **how many courts that round had** — from the round's own match count, not from
+  `courts`, so removing a court later never re-prices a round already played;
+- **which court is which** — a `dense_rank()` over `courts.position` restricted to the
+  courts that round actually used, so `Kort 1` stays rank 1 even if the court above it was
+  removed mid-tournament.
+
+The arithmetic is duplicated in `src/domain/scoring.ts` because the client ranks a round it
+has only proposed, before any row exists. The tests pin both to the same integers.
 
 A corrected score is reflected everywhere the instant it is written, and an undone round
 simply stops contributing. A stored total would have to be recomputed on score

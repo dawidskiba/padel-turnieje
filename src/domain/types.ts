@@ -7,6 +7,10 @@
  * functions over these shapes (ADR-0003).
  */
 
+import type { Scoring } from './scoring'
+
+export type { Scoring }
+
 export type Format = 'americano' | 'mexicano'
 export type TeamFormat = 'individual' | 'teams'
 export type Side = 'a' | 'b'
@@ -52,6 +56,16 @@ export interface TournamentConfig {
   restPoints: number
   /** Mexicano + individual only; null otherwise. */
   pairingFormula: PairingFormula | null
+  /**
+   * How rounds are turned into points — raw match score, or weighted by the
+   * court you played on. See domain/scoring.ts.
+   */
+  scoring: Scoring
+  /**
+   * Rounds at the start during which the court does not count, because the
+   * Mexicano draw has not sorted itself yet. Only meaningful under `courts`.
+   */
+  neutralRounds: number
 }
 
 export interface Match {
@@ -99,7 +113,10 @@ export interface StandingRow {
   name: string
   entryOrder: number
   retired: boolean
+  /** The ranking currency — raw match points, or court-weighted points. */
   points: number
+  /** Always the actual match points, whatever the scheme. */
+  rawPoints: number
   difference: number
   wins: number
   draws: number

@@ -58,6 +58,8 @@ export function SetupState({
     gamePoints,
     restPoints,
     pairingFormula: state.config.pairingFormula,
+    scoring: state.config.scoring,
+    neutralRounds: state.config.neutralRounds,
     participants: state.participants.map((p) => p.name),
     courts: state.courts.map((c) => c.name),
   })
@@ -143,6 +145,18 @@ export function SetupState({
             />
           </div>
         </Row>
+
+        {state.config.format === 'mexicano' ? (
+          <Row label="Liczenie punktów">
+            <span className="text-text">
+              {state.config.scoring === 'courts'
+                ? `z wagą kortu, ${state.config.neutralRounds} ${
+                    state.config.neutralRounds === 1 ? 'runda' : 'rundy'
+                  } bez wagi`
+                : 'zdobyte punkty'}
+            </span>
+          </Row>
+        ) : null}
 
         <Row label="Punkty za pauzę">
           <TextInput

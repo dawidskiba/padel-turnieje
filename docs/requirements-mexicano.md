@@ -103,7 +103,77 @@ round's fixture where the ladder allows it.
 
 ---
 
-## 3. The final round
+## 3. Scoring
+
+Two schemes, chosen per tournament. Existing tournaments and every Americano use
+`points`; only a Mexicano may use `courts`.
+
+### 3.1 Why raw points are wrong here
+
+Every match hands out Game Points between the two sides. The Pairing Formula balances the
+top court tightly, so it lands 11–10 and pays its winner 11. A lower court spans a wider
+spread, lands 18–3, and pays 18. Measured on a real 8-player tournament: **Kort 1 paid its
+winner 11.2 on average, Kort 2 paid 14.0** — margins on Kort 1 were 1 or 3 every round,
+while Kort 2 produced 11-point blowouts. A player who spent all five rounds on Kort 2
+finished **second**, ahead of one who spent all five on Kort 1 with the same number of wins.
+
+The irony is that this is caused by the balancing working: the better the top court is
+matched, the closer its scores and the less it pays.
+
+### 3.2 Court-weighted scoring
+
+```
+loss(court) = 2 + (courts_in_round − court) × 4        win = loss + 6
+margin      = round(2 × (scored − conceded) / GamePoints), clamped to ±2
+rest        = 2 × courts_in_round + 3                 credit = rest − 1
+```
+
+With two courts: Kort 1 pays 12 for a win and 6 for a loss, Kort 2 pays 8 and 2, a rest 7.
+A 21–0 on Kort 1 pays 14, an 11–10 pays 12.
+
+Two inequalities hold the design together, and neither is a free parameter:
+
+- **win gap (6) > court step (4)** — a win one court down beats a loss one court up, so a
+  strong player dealt a bad opening draw climbs by winning. Reverse it and the ladder
+  becomes a caste system: whoever starts high stays high, and fixing one unfairness
+  introduces another.
+- **margin cap (2) < court step (4)** — a demolition on a weak court cannot catch a tight
+  win on a strong one. Raise the cap and the original problem returns.
+
+A multiplicative weight on the whole score cannot work, and it is worth recording why: a
+winner on *any* court scores anywhere between just over half the target and all of it, so
+the spread *within* a court is wider than the gap *between* courts. Removing the bias needs
+a weight below 0.52; letting a lower-court winner outrank an upper-court loser needs one
+above 0.48. Nothing satisfies both.
+
+The court count comes from **that round's own match count**, so removing a court later never
+re-prices a round already played.
+
+### 3.3 Neutral opening rounds
+
+Round 1 of a Mexicano is a blind draw, so the court says nothing about anybody's level, and
+weighting it banks the luck of that draw. During the configured number of opening rounds
+every court pays the middle of the scale and only the margin counts.
+
+Default 1. On the real tournament above, neutralising round 1 alone changed the order —
+a player who drew Kort 1 in round 1 had been banking top-court points for a coin flip.
+Neutralising round 2 as well changed nothing further, because by then the courts had been
+earned.
+
+Note that a very short tournament feels the weighting less: over two rounds the margin
+bonus from the neutral round can offset a whole round of court advantage. It separates as
+the evening goes on.
+
+### 3.4 Ranking
+
+Ordered by scheme points, then point difference, then matches won, then raw match points,
+then entry order. Difference and raw points stay in match points under both schemes, so the
+tie-breaks mean the same thing either way — and under court scoring the integers are small,
+so ties are common and the tie-breaks earn their keep.
+
+---
+
+## 4. The final round
 
 `Ostatnia runda` is generated exactly like any other Mexicano round — the ladder already
 places the leaders together on `Kort 1`, so the format supplies its own finale.
@@ -115,7 +185,7 @@ court. The partner-variety guarantee is waived for that round only.
 
 ---
 
-## 4. Unchanged from Americano
+## 5. Unchanged from Americano
 
 Game Points and the fact that both sides' scores sum to it; Rest Points and the balanced
 rest rota with organiser override; no fixed round count; undo of the most recent round

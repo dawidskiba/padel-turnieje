@@ -7,6 +7,7 @@ import type {
   Participant,
   ProposedRound,
   Round,
+  Scoring,
   TeamFormat,
   TournamentState,
 } from '../types'
@@ -44,6 +45,8 @@ export function makeState(options: {
   gamePoints?: number
   restPoints?: number
   pairingFormula?: PairingFormula | null
+  scoring?: Scoring
+  neutralRounds?: number
   rounds?: Round[]
 }): TournamentState {
   return {
@@ -53,6 +56,8 @@ export function makeState(options: {
       gamePoints: options.gamePoints ?? 21,
       restPoints: options.restPoints ?? 11,
       pairingFormula: options.pairingFormula ?? null,
+      scoring: options.scoring ?? 'points',
+      neutralRounds: options.neutralRounds ?? 1,
     },
     participants: options.participants,
     courts: options.courts,

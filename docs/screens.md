@@ -34,6 +34,10 @@ Nowy turniej
   Skład             (●) Indywidualny   ( ) Drużynowy
   Punkty w meczu    (11) (16) (●21)  własne [ __ ]
   Punkty za pauzę   [ 11 ]
+
+  Liczenie punktów  (●) Zdobyte punkty        (Mexicano only)
+                    ( ) Z wagą kortu
+  Rundy bez wagi    [ 1 ]                     (only when weighted)
   Uczestnicy (16)   [ Iga|                               ]
                     ⓧAnn ⓧBob ⓧCara ⓧDan ⓧEwa ⓧFred …
   Korty (4)         ⓧKort 1 ⓧKort 2 ⓧKort 3 ⓧKort 4
@@ -41,8 +45,12 @@ Nowy turniej
                                         [ stwórz turniej ]
 ```
 
-The Mexicano-only sections — **Pairing Formula** and round-1 **Seeding** — appear when
-Mexicano is selected and are absent otherwise.
+The Mexicano-only sections — **Pairing Formula**, **Scoring** and round-1 **Seeding** —
+appear when Mexicano is selected and are absent otherwise. Scoring defaults to raw points,
+so an organiser who ignores it gets the behaviour they had before; picking court weighting
+reveals the neutral-rounds field, which is meaningless otherwise. Setting it to 0 warns:
+weighting round 1 banks the luck of a blind draw. See
+[`requirements-mexicano.md`](./requirements-mexicano.md) §3.
 
 ### Roster entry
 
@@ -77,6 +85,7 @@ something genuinely needs changing before play starts.
   Uczestnicy 18                                [zarządzaj]
   Korty 4                                      [zarządzaj]
   Punkty w meczu 21  ·  Punkty za pauzę 11      (edytowalne)
+  Liczenie punktów: z wagą kortu, 1 runda bez wagi   (read-only)
 
   ⚠ 2 osoby pauzują co rundę
 

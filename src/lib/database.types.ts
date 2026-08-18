@@ -10,6 +10,7 @@ export type TournamentFormatRow = 'americano' | 'mexicano'
 export type TeamFormatRow = 'individual' | 'teams'
 export type PairingFormulaRow = '1+4v2+3' | '1+2v3+4' | '1+3v2+4'
 export type MatchSideRow = 'a' | 'b'
+export type ScoringRow = 'points' | 'courts'
 export type RoundParticipantStatusRow = 'playing' | 'resting' | 'credited'
 
 export interface TournamentRow {
@@ -22,6 +23,10 @@ export interface TournamentRow {
   game_points: number
   rest_points: number
   pairing_formula: PairingFormulaRow | null
+  /** How rounds become points: raw match score, or weighted by court. */
+  scoring: ScoringRow
+  /** Opening rounds during which the court does not count. */
+  neutral_rounds: number
   created_at: string
   finished_at: string | null
 }
@@ -89,6 +94,8 @@ export interface CreateTournamentPayload {
   game_points: number
   rest_points: number
   pairing_formula: PairingFormulaRow | null
+  scoring?: ScoringRow
+  neutral_rounds?: number
   courts: string[]
   participants: Array<{
     name: string

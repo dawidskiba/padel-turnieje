@@ -130,6 +130,25 @@ Finished they are locked along with the roster.
 Court assignment spreads Participants across the available Courts, so nobody spends the
 whole Tournament on the same one.
 
+## Scoring
+
+How a Round becomes points. Two schemes, fixed per Tournament when the first Round is
+generated.
+
+- **Points** — the raw match score. Correct for Americano, which spreads Participants
+  across Courts deliberately, so the Court says nothing about the opposition.
+- **Courts** — weighted by the Court played on, for Mexicano, where the Court *is* a
+  statement about who you are playing. A win pays a base for the Court and whether you won,
+  plus a small bonus for the margin. Raw points systematically favour the weaker Courts,
+  because the Pairing Formula balances the top Court so it finishes close and pays little,
+  while a wide-spread lower Court pays out nearly the whole target.
+
+## Neutral Rounds
+
+Opening Rounds of a court-weighted Mexicano during which every Court pays alike. The first
+Round is a blind draw, so the Court carries no information about strength and weighting it
+would bank the luck of that draw. Only the margin counts until they are over.
+
 ## Standing
 
 The ranking of Participants by points accumulated across all Rounds, Rest Points

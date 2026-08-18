@@ -24,6 +24,8 @@ function persistThenRead(state: TournamentState, proposal: ProposedRound): Propo
       format: state.config.format, team_format: state.config.teamFormat,
       game_points: state.config.gamePoints, rest_points: state.config.restPoints,
       pairing_formula: state.config.pairingFormula,
+      scoring: 'points',
+      neutral_rounds: 1,
       created_at: '2026-08-18T00:00:00Z', finished_at: null,
     },
     courts: state.courts.map((c) => ({
