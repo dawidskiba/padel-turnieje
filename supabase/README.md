@@ -30,3 +30,16 @@ resetting the redirect allowlist.
 Auth settings are managed in the dashboard: **Authentication → URL Configuration**. After
 deploying, Site URL and Redirect URLs must include the production domain, or the sign-in
 link refuses to redirect back.
+
+## Recreating a view
+
+Dropping and recreating a view in `public` re-acquires Supabase's default privileges for
+`anon` and `authenticated` — the revokes from the initial schema do **not** survive. Any
+migration that recreates a view must re-state its grants, and the push should be followed by
+
+```sql
+select grantee, privilege_type from information_schema.role_table_grants
+where table_name = '<view>';
+```
+
+`20260818040000` exists because `20260818030000` missed this.
