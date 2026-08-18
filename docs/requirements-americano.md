@@ -18,7 +18,7 @@ The create form collects:
 | Team Format | `Indywidualny` (default) or `Drużynowy`. |
 | Participants | Unique names within the tournament. In `Indywidualny` a participant is a player; in `Drużynowy` it is a team entered as a single name — the app does not know who is in the team. |
 | Game Points | Presets 11 / 16 / 21 plus a custom number. **21 selected by default.** Allowed range 1–99. |
-| Rest Points | Number input, defaults to `ceil(GamePoints / 2)` — 21→11, 16→8, 11→6. Follows Game Points until the organiser types a value, then stops tracking. |
+| Rest Points | Number input, defaults to `floor(GamePoints / 2)` — 21→10, 16→8, 11→5. Rounded **down**: with a 21-point target 11 is the winning score, so rounding up paid a rested round like a narrow win, and a late joiner credited for missed rounds arrived as though they had won every one. Follows Game Points until the organiser types a value, then stops tracking. |
 | Courts | Unique names within the tournament. Defaults generated as `Kort 1`, `Kort 2`, … incrementing from 1. |
 
 ### 1.1 Validation
@@ -170,7 +170,17 @@ The table shows position, name, points, difference and a W–D–L (`Z–R–P`)
 | Undo a round | Most recent round only. Discards its schedule and results; the tournament returns to the end of the previous round. |
 
 Locked once the first round is generated: Game Points, Rest Points, Format, Team
-Format. Editable throughout: name, roster, courts.
+Format. Editable while the tournament is running: name, roster, courts.
+
+Once **finished**, the roster and the courts are locked too. A finished tournament is a
+record, and adding a participant or a court to one changes nothing that can be played
+while making the standings harder to trust — a name with no rounds against it, or a court
+that hosted nothing. Scores stay correctable, because a mistyped result is worth fixing
+whenever it is noticed. Reopening the tournament unlocks everything again, which makes
+changing a finished event a deliberate act rather than an accident.
+
+Both halves are enforced: the desk hides the controls, and the database refuses the write
+regardless of what any client attempts.
 
 ---
 

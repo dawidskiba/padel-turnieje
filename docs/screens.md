@@ -236,6 +236,9 @@ who wonders why they cannot change the target gets an answer.
 The participants editor handles adding (with the rest-credit choice, pre-ticked) and
 retiring. The courts editor handles adding, renaming and removing.
 
+Once the tournament is **finished**, both editors become read-only and say so. Scores can
+still be corrected; reopening restores everything else.
+
 ---
 
 ## Sharing

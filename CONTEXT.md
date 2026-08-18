@@ -14,7 +14,9 @@ A Tournament is in one of three states:
 - **Running** — the first Round has been generated. Scoring settings, Format and Team
   Format are frozen, because changing them would make already-recorded Matches
   incomparable. Name, roster and Courts stay editable.
-- **Finished** — closed by the Final Round. Read-only, reopenable by the Organiser.
+- **Finished** — closed by the Final Round. The roster and the Courts are locked, since a
+  finished Tournament is a record rather than something still being arranged. Scores stay
+  correctable. Reopening returns it to Running.
 
 ## Format
 
@@ -99,8 +101,9 @@ values allowed; default 21.
 ## Rest Points
 
 Points credited to a Participant for a Round in which they do not play, so that sitting
-out is not a penalty. Defaults to half the Game Points, rounded up, until the Organiser
-sets it explicitly.
+out is not a penalty, without being better than playing. Defaults to half the Game Points
+rounded **down**, until the Organiser sets it explicitly: with a target of 21 that is 10,
+the losing score, rather than 11, which is the winning one.
 
 ## Rest Rota
 
@@ -117,7 +120,8 @@ guarantee. A Round that is wrong as a whole is undone and regenerated instead.
 
 A named playing surface, unique by name within a Tournament. Default names are
 generated as "Kort 1", "Kort 2", … in order. Courts may be added or removed while the
-Tournament is Running; the change takes effect from the next Round.
+Tournament is Running; the change takes effect from the next Round. Once the Tournament is
+Finished they are locked along with the roster.
 
 Court assignment spreads Participants across the available Courts, so nobody spends the
 whole Tournament on the same one.

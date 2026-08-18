@@ -227,6 +227,13 @@ array**, because the courts do not exist yet when the client builds the payload.
 `add_participant` writes the participant and, when the organiser leaves the credit box
 ticked, one `credited` row per round already played.
 
+Two triggers refuse writes to `participants` and `courts` while a tournament's
+`finished_at` is set. A finished tournament is a record: adding a participant or a court to
+one changes nothing playable and makes the standings harder to trust. Scores remain
+correctable, and reopening lifts the lock — so amending a finished event is deliberate
+rather than accidental. Deleting the whole tournament still works, because the parent row
+goes first and the cascade then sees no finished tournament to protect.
+
 `create_round` also enforces an invariant the tables cannot express: **every active
 participant must be either playing or resting.** A round was once written that omitted
 one — the organiser added a player while a proposed round was already on screen, and

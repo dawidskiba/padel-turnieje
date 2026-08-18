@@ -26,10 +26,19 @@ function draft(overrides: Partial<DraftTournament> = {}): DraftTournament {
 const messages = (d: DraftTournament) => validateDraft(d).map((i) => i.message)
 
 describe('rest points default', () => {
-  it('is half the game points, rounded up', () => {
-    expect(defaultRestPoints(21)).toBe(11)
+  it('is half the game points, rounded down', () => {
+    // Rounded down, not up: with a 21-point target, 11 is the winning score, so
+    // rounding up paid a rested player as though they had narrowly won.
+    expect(defaultRestPoints(21)).toBe(10)
     expect(defaultRestPoints(16)).toBe(8)
-    expect(defaultRestPoints(11)).toBe(6)
+    expect(defaultRestPoints(11)).toBe(5)
+  })
+
+  it('never pays a rest more than a losing score', () => {
+    for (const gamePoints of [11, 16, 21, 31, 99]) {
+      const rest = defaultRestPoints(gamePoints)
+      expect(rest).toBeLessThan(gamePoints - rest + 1)
+    }
   })
 })
 

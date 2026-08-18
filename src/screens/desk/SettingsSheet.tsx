@@ -114,6 +114,14 @@ export function SettingsSheet({
   const lastRound = roundsPlayed ? Math.max(...state.rounds.map((r) => r.number)) : 0
   const nextRound = lastRound + 1
 
+  /**
+   * A finished tournament is a record, not a work in progress. Adding a player
+   * or a court to one changes nothing that can be played and only makes the
+   * standings harder to trust — a name with no rounds against it, or a court
+   * that hosted nothing. Reopen it first if something genuinely needs changing.
+   */
+  const locked = phase === 'finished'
+
   return (
     <Sheet open onClose={onClose} title="Ustawienia" size="lg">
       <div className="space-y-7">
@@ -151,6 +159,13 @@ export function SettingsSheet({
         <section className="space-y-3">
           <SectionTitle>Uczestnicy ({state.participants.length})</SectionTitle>
 
+          {locked ? (
+            <p className="text-sm text-text-muted">
+              🔒 Turniej zakończony — składu nie da się już zmienić. Otwórz turniej ponownie,
+              jeśli musisz coś poprawić.
+            </p>
+          ) : null}
+
           <ul className="divide-y divide-border rounded-lg border border-border">
             {state.participants.map((participant) => (
               <li key={participant.id} className="flex items-center gap-3 px-3 py-2">
@@ -173,7 +188,7 @@ export function SettingsSheet({
                   ) : null}
                 </span>
 
-                {participant.retiredAfterRound !== null ? (
+                {locked ? null : participant.retiredAfterRound !== null ? (
                   <Button
                     size="sm"
                     variant="ghost"
@@ -194,11 +209,13 @@ export function SettingsSheet({
             ))}
           </ul>
 
-          <AddParticipant
-            roundsPlayed={roundsPlayed}
-            restPoints={state.config.restPoints}
-            onAdd={actions.addParticipant}
-          />
+          {locked ? null : (
+            <AddParticipant
+              roundsPlayed={roundsPlayed}
+              restPoints={state.config.restPoints}
+              onAdd={actions.addParticipant}
+            />
+          )}
         </section>
 
         <section className="space-y-3">
@@ -212,13 +229,17 @@ export function SettingsSheet({
                   <TextInput
                     defaultValue={court.name}
                     aria-label={`Nazwa kortu ${court.name}`}
-                    className={cx('flex-1 py-1.5 text-sm', removed && 'opacity-50')}
+                    disabled={locked}
+                    className={cx(
+                      'flex-1 py-1.5 text-sm',
+                      (removed || locked) && 'opacity-50',
+                    )}
                     onBlur={(event) => {
                       const next = event.target.value.trim()
                       if (next && next !== court.name) actions.renameCourt(court.id, next)
                     }}
                   />
-                  {removed ? (
+                  {locked ? null : removed ? (
                     <Button size="sm" variant="ghost" onClick={() => actions.restoreCourt(court.id)}>
                       Przywróć
                     </Button>
@@ -237,18 +258,22 @@ export function SettingsSheet({
           </ul>
 
           <p className="text-sm text-text-muted">
-            Zmiany kortów obowiązują od następnej rundy. Rozegrane rundy zostają bez zmian.
+            {locked
+              ? '🔒 Turniej zakończony — kortów nie da się już zmienić.'
+              : 'Zmiany kortów obowiązują od następnej rundy. Rozegrane rundy zostają bez zmian.'}
           </p>
 
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() =>
-              actions.addCourt(defaultCourtName(state.courts.length), state.courts.length + 1)
-            }
-          >
-            + Dodaj {defaultCourtName(state.courts.length)}
-          </Button>
+          {locked ? null : (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() =>
+                actions.addCourt(defaultCourtName(state.courts.length), state.courts.length + 1)
+              }
+            >
+              + Dodaj {defaultCourtName(state.courts.length)}
+            </Button>
+          )}
         </section>
 
         <section className="space-y-3">
