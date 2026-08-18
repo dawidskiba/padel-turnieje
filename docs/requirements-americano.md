@@ -77,6 +77,21 @@ same court for the first few rounds before it corrects itself.
 Closing that gap would mean letting court spread override partner variety, which the
 priority order deliberately forbids.
 
+Rule 2 is applied optimally **per round**: among every possible way of pairing the sides
+available, the round chosen has the fewest repeats there are. Verified by exhaustive
+comparison against all possible arrangements.
+
+Per-round optimality is not the same as an optimal *schedule*, though, and the difference
+shows up with small even rosters. Six teams on three courts admits a perfect five-round
+round robin, but only if the first three rounds are chosen as part of that plan; each
+round taken on its own merits leaves round four with no rematch-free option at all. Eight
+teams on four courts happens to reach the full seven rounds; six on three does not reach
+five.
+
+A guaranteed round robin would mean planning every round up front, which a tournament
+cannot do: the roster and the courts can both change between rounds, and the schedule
+would be invalidated the first time somebody arrived late or a court was rained off.
+
 Pairings are **not** hand-editable. A round whose schedule is wrong is undone and
 regenerated.
 

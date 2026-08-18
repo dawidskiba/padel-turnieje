@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { historyOf } from '../history'
 import { generateRound } from '../round'
-import { commit, courts, makeState, roster } from './factory'
+import { commit, courts, makeState, participant, roster } from './factory'
 import type { TournamentState } from '../types'
 
 /**
@@ -87,5 +87,64 @@ describe('individual Americano opponent freshness', () => {
       for (let j = i + 1; j < ids.length; j++) counts.push(history.opponentCount(ids[i], ids[j]))
     }
     expect(Math.max(...counts)).toBeLessThanOrEqual(2)
+  })
+})
+
+/**
+ * The question that matters to an organiser: with eight teams, does a team meet
+ * every other one before any rematch?
+ *
+ * Yes, when the courts allow everyone to play. Eight teams on four courts is a
+ * complete seven-round round robin, and the first rematch is round eight — the
+ * theoretical best. Verified below rather than assumed.
+ */
+describe('eight teams', () => {
+  function eightTeams(courtCount: number): TournamentState {
+    return makeState({
+      participants: Array.from({ length: 8 }, (_, i) => participant(`T${i + 1}`, i + 1)),
+      courts: courts(courtCount),
+      teamFormat: 'teams',
+    })
+  }
+
+  function firstRepeatRound(state: TournamentState, rounds: number): number | null {
+    const ids = state.participants.map((p) => p.id)
+
+    for (let round = 1; round <= rounds; round++) {
+      const history = historyOf(state)
+      const proposal = generateRound(state)
+
+      for (const match of proposal.matches) {
+        if (history.opponentCount(match.sideA[0], match.sideB[0]) > 0) return round
+      }
+      state = commit(state, proposal, () => 13)
+    }
+    return null
+  }
+
+  it('meets all seven opponents before any rematch, on four courts', () => {
+    // 8 teams, 4 courts: every team plays every round. A complete round robin is
+    // seven rounds, so nothing may repeat until the eighth.
+    expect(firstRepeatRound(eightTeams(4), 7)).toBeNull()
+  })
+
+  it('gives every team all seven opponents exactly once over seven rounds', () => {
+    let state = eightTeams(4)
+    for (let i = 0; i < 7; i++) state = commit(state, generateRound(state), () => 13)
+
+    const history = historyOf(state)
+    const ids = state.participants.map((p) => p.id)
+
+    for (const id of ids) {
+      const faced = ids.filter((other) => other !== id).map((other) => history.opponentCount(id, other))
+      expect(faced.every((n) => n === 1), `${id} faced ${JSON.stringify(faced)}`).toBe(true)
+    }
+  })
+
+  it('still avoids rematches for several rounds when a court is short', () => {
+    // 8 teams on 3 courts: 6 play, 2 rest, so the rota limits how fast the
+    // fixture list can be worked through — but rematches still stay away for
+    // longer than a club evening lasts.
+    expect(firstRepeatRound(eightTeams(3), 6)).toBeNull()
   })
 })
