@@ -222,5 +222,32 @@ export function generateRound(
     )
   }
 
-  return { number: roundNumber, isFinal, matches, resting }
+  return normaliseOrder({ number: roundNumber, isFinal, matches, resting }, state)
+}
+
+/**
+ * Put every side and the rest list into entry order.
+ *
+ * The algorithms emit their own orders — the Mexicano formula produces
+ * `[rank 1, rank 4]`, greedy pairing produces whatever it picked first — while
+ * reading a round back from the database sorts by entry order for stable
+ * rendering. The result was a proposal that visibly reshuffled the moment it was
+ * confirmed, which undermines the whole point of showing it first.
+ *
+ * Only the display order changes. A side is defined by who is in it.
+ */
+function normaliseOrder(round: ProposedRound, state: TournamentState): ProposedRound {
+  const entryOrder = new Map(state.participants.map((p) => [p.id, p.entryOrder]))
+  const byEntryOrder = (a: string, b: string) =>
+    (entryOrder.get(a) ?? 0) - (entryOrder.get(b) ?? 0)
+
+  return {
+    ...round,
+    matches: round.matches.map((match) => ({
+      ...match,
+      sideA: [...match.sideA].sort(byEntryOrder),
+      sideB: [...match.sideB].sort(byEntryOrder),
+    })),
+    resting: [...round.resting].sort(byEntryOrder),
+  }
 }

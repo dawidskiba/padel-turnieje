@@ -89,6 +89,11 @@ export function toTournamentState(bundle: TournamentBundle): TournamentState {
     const target = row.status === 'resting' ? restingByRound : creditedByRound
     target.set(row.round_id, [...(target.get(row.round_id) ?? []), row.participant_id])
   }
+  // Entry order here too, for the same reason as the sides: row order is
+  // arbitrary, and a list that reshuffles itself between renders reads as a bug.
+  for (const map of [restingByRound, creditedByRound]) {
+    for (const [roundId, ids] of map) map.set(roundId, [...ids].sort(byEntryOrder))
+  }
 
   const rounds: Round[] = [...bundle.rounds]
     .sort((a, b) => a.number - b.number)
