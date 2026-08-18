@@ -197,7 +197,81 @@ export function formMatches(
     remaining.splice(i, 1)
   }
 
-  return matches
+  return improveMatches(matches, history, courts)
+}
+
+/**
+ * The same repair `improvePairs` does, one level up.
+ *
+ * Greedy matches sides off two at a time, so the last two are forced together
+ * however often they have already met. Observed in a real 5-team Americano:
+ * G&H played I&J in consecutive rounds while four of the ten possible fixtures
+ * were still unused, because both alternatives were consumed by earlier picks.
+ *
+ * Swapping opponents between two matches leaves the partnerships alone — those
+ * were already chosen for variety — so this only ever trades opponent repeats
+ * down.
+ */
+function improveMatches(
+  matches: Array<{ sideA: string[]; sideB: string[] }>,
+  history: History,
+  courts: Court[],
+): Array<{ sideA: string[]; sideB: string[] }> {
+  const result = matches.map((m) => ({ ...m }))
+  const opponents = (a: string[], c: string[]) => crossOpponentCount(a, c, history)
+  const courtCost = (a: string[], c: string[]) =>
+    bestCourtImbalance([...a, ...c], courts, history)
+
+  /**
+   * `strict` reduces opponent repeats, which is priority 2. The second pass runs
+   * with strict off: it only takes swaps that leave opponent cost untouched and
+   * improve court balance, recovering the priority-3 work that the first pass
+   * necessarily disturbed. Court spread never overrides opponent freshness.
+   */
+  const pass = (strict: boolean) => {
+    let improved = true
+    while (improved) {
+      improved = false
+
+      for (let i = 0; i < result.length; i++) {
+        for (let j = i + 1; j < result.length; j++) {
+          const { sideA: a1, sideB: b1 } = result[i]
+          const { sideA: a2, sideB: b2 } = result[j]
+
+          const options = [
+            { i: { sideA: a1, sideB: b2 }, j: { sideA: a2, sideB: b1 } },
+            { i: { sideA: a1, sideB: a2 }, j: { sideA: b1, sideB: b2 } },
+          ]
+
+          const score = (m: { sideA: string[]; sideB: string[] }[]) => ({
+            opponents: opponents(m[0].sideA, m[0].sideB) + opponents(m[1].sideA, m[1].sideB),
+            courts: courtCost(m[0].sideA, m[0].sideB) + courtCost(m[1].sideA, m[1].sideB),
+          })
+
+          const currentScore = score([result[i], result[j]])
+
+          for (const option of options) {
+            const next = score([option.i, option.j])
+            const better = strict
+              ? next.opponents < currentScore.opponents
+              : next.opponents === currentScore.opponents && next.courts < currentScore.courts
+
+            if (better) {
+              result[i] = option.i
+              result[j] = option.j
+              improved = true
+              break
+            }
+          }
+        }
+      }
+    }
+  }
+
+  pass(true)
+  if (courts.length > 0) pass(false)
+
+  return result
 }
 
 /**
@@ -226,18 +300,22 @@ export function assignCourtsSpread(
   history: History,
 ): ProposedMatch[] {
   /**
-   * Score an arrangement by how lopsided it leaves each individual, not by
-   * total court usage.
+   * Score an arrangement by the players it treats worst, as a list of individual
+   * imbalances sorted worst-first and compared lexicographically.
    *
-   * Total usage is the obvious measure and it is wrong. Courts can only be
-   * assigned a whole match at a time, so moving one stuck player off Kort 1
-   * drags three team-mates with them; measured as a sum, that always looks
-   * worse, and a real tournament ended with two players who had spent every
-   * single round on the same court. Squared imbalance instead makes one badly
-   * parked player outweigh a little inconvenience spread across several.
+   * Summing will not do, and the reason is subtle. When the round's matches
+   * cover everyone — eight players on two courts, the commonest setup of all —
+   * swapping the courts is a global mirror: every player's counts invert and any
+   * symmetric total, sum or sum-of-squares alike, comes out identical. The
+   * positional tie-break then picks the same arrangement every single round. One
+   * real 8-player tournament left a player on the same court for all seven
+   * rounds while everyone else sat at 4/3, and no sum could see it.
+   *
+   * Comparing worst-off player first breaks that symmetry: 7-1-1-1 loses to
+   * 5-3-1-1 even though both sum to 10.
    */
-  const arrangementCost = (order: Court[]): number => {
-    let cost = 0
+  const arrangementProfile = (order: Court[]): number[] => {
+    const imbalances: number[] = []
 
     matches.forEach((match, index) => {
       const assigned = order[index]
@@ -245,12 +323,11 @@ export function assignCourtsSpread(
         const counts = courts.map(
           (court) => history.courtCount(id, court.id) + (court.id === assigned.id ? 1 : 0),
         )
-        const imbalance = Math.max(...counts) - Math.min(...counts)
-        cost += imbalance * imbalance
+        imbalances.push(Math.max(...counts) - Math.min(...counts))
       }
     })
 
-    return cost
+    return imbalances.sort((a, b) => b - a)
   }
 
   const build = (order: Court[]): ProposedMatch[] =>
@@ -266,13 +343,13 @@ export function assignCourtsSpread(
     // Cost every arrangement rather than choosing court by court: a per-match
     // greedy cannot see the round as a whole, and with two courts there is only
     // one decision to make anyway.
-    let bestCost = Infinity
+    let bestProfile: number[] | null = null
     chosen = courts
 
     for (const order of permutations(courts)) {
-      const total = arrangementCost(order)
-      if (total < bestCost) {
-        bestCost = total
+      const profile = arrangementProfile(order)
+      if (bestProfile === null || lexCompare(profile, bestProfile) < 0) {
+        bestProfile = profile
         chosen = order
       }
     }
@@ -285,16 +362,16 @@ export function assignCourtsSpread(
       let bestKey: number[] | null = null
 
       free.forEach((court, index) => {
-        let cost = 0
-        for (const id of [...match.sideA, ...match.sideB]) {
-          const counts = courts.map(
-            (c) => history.courtCount(id, c.id) + (c.id === court.id ? 1 : 0),
-          )
-          const imbalance = Math.max(...counts) - Math.min(...counts)
-          cost += imbalance * imbalance
-        }
+        const imbalances = [...match.sideA, ...match.sideB]
+          .map((id) => {
+            const counts = courts.map(
+              (c) => history.courtCount(id, c.id) + (c.id === court.id ? 1 : 0),
+            )
+            return Math.max(...counts) - Math.min(...counts)
+          })
+          .sort((a, b) => b - a)
 
-        const key = [cost, court.position]
+        const key = [...imbalances, court.position]
         if (bestKey === null || lexCompare(key, bestKey) < 0) {
           bestKey = key
           bestIndex = index

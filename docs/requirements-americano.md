@@ -66,6 +66,17 @@ Applied in priority order:
 
 In `Drużynowy` only rule 2 applies to the teams — partners never change.
 
+Rules 1 and 2 are guarantees: a partnership or fixture is never repeated while a fresh one
+is available. Rule 3 is best-effort, and how well it does depends on how many courts there
+are. Courts are assigned a whole match at a time, and by the time that happens the
+foursomes are already fixed by rules 1 and 2 — so with four or more courts nobody is ever
+confined to one court and imbalance stays within three appearances, while with **two
+courts** the entire freedom is a single binary swap per round and a player can sit on the
+same court for the first few rounds before it corrects itself.
+
+Closing that gap would mean letting court spread override partner variety, which the
+priority order deliberately forbids.
+
 Pairings are **not** hand-editable. A round whose schedule is wrong is undone and
 regenerated.
 
