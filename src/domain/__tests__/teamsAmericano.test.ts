@@ -108,8 +108,6 @@ describe('eight teams', () => {
   }
 
   function firstRepeatRound(state: TournamentState, rounds: number): number | null {
-    const ids = state.participants.map((p) => p.id)
-
     for (let round = 1; round <= rounds; round++) {
       const history = historyOf(state)
       const proposal = generateRound(state)
