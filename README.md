@@ -60,10 +60,30 @@ git push -u origin main
 ## 5. Deployment (hosting)
 
 1. Go to [vercel.com](https://vercel.com) and sign in with GitHub.
-2. Click "Add New Project" and pick the `padel-turnieje` repo.
+2. Click "Add New Project" and pick the `padel-turnieje` repo. Framework detection picks
+   up Vite; build command `npm run build`, output directory `dist`.
 3. In the project settings (Environment Variables) add `VITE_SUPABASE_URL` and
-   `VITE_SUPABASE_ANON_KEY` — the same values as in your local `.env`.
+   `VITE_SUPABASE_ANON_KEY` — the same values as in your local `.env`. **The URL is the
+   project URL, not the REST endpoint**: `https://<ref>.supabase.co`, with no `/rest/v1`.
 4. Deploy — from then on every `git push` to `main` automatically updates the live version.
+
+`vercel.json` (and `netlify.toml`, if you host there instead) routes every path to
+`index.html`. This is not optional: the app does its own routing, so without it only `/`
+would work and every shared tournament link would 404.
+
+### After the first deploy
+
+Add the production URL to Supabase, or sign-in will fail. **Authentication → URL
+Configuration**:
+
+- Site URL: `https://<your-domain>`
+- Redirect URLs: `https://<your-domain>/**`
+
+Keep `http://localhost:5173/**` there too if you still develop locally.
+
+Nothing else needs configuring. The database migrations are already applied, and the anon
+key is safe to expose — it grants no table access at all, and the only function it can call
+is the read-only `public_tournament` (see `docs/adr/0002-public-read-via-rpc.md`).
 
 ## Project structure
 
