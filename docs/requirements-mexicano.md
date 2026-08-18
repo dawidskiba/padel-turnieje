@@ -70,9 +70,18 @@ the top court.
 ### 2.3 The court ladder
 
 Court number is meaningful in Mexicano: `Kort 1` hosts the leaders, and climbing courts
-between rounds is how a player reads their evening. This deliberately contradicts the
-Americano rule that spreads participants evenly across courts — the two formats differ
-here, and the difference is the point.
+between rounds is how a player reads their evening. Ranks map to courts strictly and
+always — 1–4 on the first court, 5–8 on the second, 9–12 on the third, and so on down.
+
+Staying on the same court is therefore the *expected* outcome of playing well, not a
+fault. A player who holds the top four holds Kort 1 all evening. This deliberately
+contradicts the Americano rule that spreads participants across courts — the two formats
+differ here, and the difference is the point. Nothing in the Americano court-spreading
+logic touches Mexicano.
+
+When fewer courts are available than the ranking would fill, the ladder simply occupies
+the courts that remain, still from the top: with Kort 2 rained out, ranks 1–4 play Kort 1
+and 5–8 play Kort 3.
 
 ### 2.4 Repeat avoidance
 
