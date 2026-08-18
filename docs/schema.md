@@ -227,6 +227,14 @@ array**, because the courts do not exist yet when the client builds the payload.
 `add_participant` writes the participant and, when the organiser leaves the credit box
 ticked, one `credited` row per round already played.
 
+`create_round` also enforces an invariant the tables cannot express: **every active
+participant must be either playing or resting.** A round was once written that omitted
+one — the organiser added a player while a proposed round was already on screen, and
+confirming persisted the round computed for the previous roster. The new player was active
+for that round but had no row at all, so they scored nothing: no match, and no rest points
+either. Nothing objected. The client now regenerates a stale proposal, but this is the
+check that makes such a round impossible to write.
+
 ### Idempotency
 
 Retries on flaky wifi are made harmless by the constraints themselves:

@@ -33,6 +33,7 @@ export function RunningState({
   isPending,
   actions,
   saving,
+  staleNotice = false,
 }: {
   name: string
   currentRound: Round | null
@@ -44,6 +45,8 @@ export function RunningState({
   isPending: (roundNumber: number, courtId: string) => boolean
   actions: RunningActions
   saving: boolean
+  /** The roster changed under this proposal, so it was recomputed. */
+  staleNotice?: boolean
 }) {
   const showing = proposal ?? currentRound
   const complete = currentRound !== null && isRoundComplete(currentRound)
@@ -139,6 +142,12 @@ export function RunningState({
               </Button>
             </div>
           </div>
+
+          {staleNotice ? (
+            <p className="mt-2 text-xs text-warning">
+              Skład albo korty się zmieniły — runda została przeliczona od nowa.
+            </p>
+          ) : null}
 
           <p className="mt-2 text-xs text-text-muted">
             Pary ustala algorytm i nie da się ich edytować pojedynczo — ręczna zmiana zepsułaby

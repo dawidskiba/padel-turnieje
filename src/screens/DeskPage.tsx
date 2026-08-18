@@ -55,6 +55,8 @@ export function DeskPage() {
   const [proposal, setProposal] = useState<ProposedRound | null>(null)
   /** Bumped by "Przetasuj" to get a different equally valid arrangement. */
   const [variant, setVariant] = useState(0)
+  /** Set when an open proposal had to be recomputed because the roster moved. */
+  const [proposalStale, setProposalStale] = useState(false)
   /**
    * Set when the organiser discards a proposal before the first round, which is
    * the only way back to the setup screen now that it is skipped on arrival.
@@ -96,10 +98,40 @@ export function DeskPage() {
   }, [state])
 
   /**
-   * The final round closes the tournament once its results are in. Deferred
-   * until nothing is queued: finishing while a score is still pending would
-   * publish a table that is about to change.
+   * What round generation actually depends on. Adding a player, retiring one, or
+   * changing the courts all change what a valid round looks like.
    */
+  const rosterSignature = useMemo(() => {
+    if (!state) return ''
+    return [
+      state.participants
+        .map((p) => `${p.id}:${p.joinedRound}:${p.retiredAfterRound ?? '-'}`)
+        .join('|'),
+      state.courts.map((c) => `${c.id}:${c.removedFromRound ?? '-'}`).join('|'),
+    ].join('#')
+  }, [state])
+
+  /**
+   * Recompute an open proposal when the roster moves under it.
+   *
+   * The proposal is held in component state, so adding a player while one was on
+   * screen left it computed for the old roster — and confirming wrote a round
+   * that simply omitted the new player, who then scored nothing for it. Observed
+   * in a real tournament. The database now refuses such a round outright; this
+   * keeps the organiser from ever hitting that refusal.
+   */
+  const proposalSignature = useRef<string | null>(null)
+  useEffect(() => {
+    if (!proposal || !view) return
+    if (proposalSignature.current === null || proposalSignature.current === rosterSignature) return
+
+    proposalSignature.current = rosterSignature
+    setProposalStale(true)
+    // The rest override is dropped deliberately: it was chosen for a roster that
+    // no longer exists.
+    setProposal(generateRound(view.state, { isFinal: proposal.isFinal, variant }))
+  }, [rosterSignature, proposal, view, variant])
+
   /**
    * Land on the courts, not on a summary of what was just typed.
    *
@@ -119,9 +151,15 @@ export function DeskPage() {
     if (matchCount(view.state, 1) === 0) return
 
     autoProposed.current = true
+    proposalSignature.current = rosterSignature
     setProposal(generateRound(view.state, { isFinal: false }))
-  }, [view, proposal, showSetup])
+  }, [view, proposal, showSetup, rosterSignature])
 
+  /**
+   * The final round closes the tournament once its results are in. Deferred
+   * until nothing is queued: finishing while a score is still pending would
+   * publish a table that is about to change.
+   */
   const finishing = useRef(false)
   const finishMutate = settings.finish.mutate
   useEffect(() => {
@@ -158,6 +196,8 @@ export function DeskPage() {
     if (!state) return
     setVariant(0)
     setShowSetup(false)
+    setProposalStale(false)
+    proposalSignature.current = rosterSignature
     setProposal(generateRound(state, { isFinal }))
   }
 
@@ -165,6 +205,8 @@ export function DeskPage() {
     if (!state || !proposal) return
     const next = variant + 1
     setVariant(next)
+    setProposalStale(false)
+    proposalSignature.current = rosterSignature
     // Keep whoever is resting: the organiser may have chosen them deliberately,
     // and reshuffling the pairings should not quietly undo that.
     setProposal(
@@ -181,6 +223,8 @@ export function DeskPage() {
     await createRound.mutateAsync(proposal)
     setProposal(null)
     setVariant(0)
+    setProposalStale(false)
+    proposalSignature.current = null
   }
 
   function openScoreSheet(roundNumber: number, courtId: string, side: 'a' | 'b') {
@@ -247,6 +291,7 @@ export function DeskPage() {
             nameOf={nameOf}
             isPending={isPending}
             saving={createRound.isPending}
+            staleNotice={proposalStale}
             actions={{
               score: openScoreSheet,
               nextRound: () => propose(false),
@@ -255,6 +300,8 @@ export function DeskPage() {
               discardProposal: () => {
                 setProposal(null)
                 setVariant(0)
+                setProposalStale(false)
+                proposalSignature.current = null
                 // Before round 1 this is the only route back to setup.
                 if (phase === 'setup') setShowSetup(true)
               },
