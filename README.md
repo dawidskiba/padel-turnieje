@@ -85,6 +85,25 @@ Nothing else needs configuring. The database migrations are already applied, and
 key is safe to expose — it grants no table access at all, and the only function it can call
 is the read-only `public_tournament` (see `docs/adr/0002-public-read-via-rpc.md`).
 
+### Restricting who can sign in
+
+Magic-link auth is open by default: any address can request a link and gets its own
+account. Such a stranger could not see or change your tournaments — ownership is enforced
+in the database — but they could create their own inside your project.
+
+To close it, in **Authentication → Sign In / Providers → Email**, turn off *Allow new users
+to sign up*. Existing accounts keep working; unknown addresses are refused. Add an
+organiser later from **Authentication → Users → Invite**.
+
+That dashboard setting is the actual gate. The app also passes `shouldCreateUser: false`,
+which stops it creating an account as a side effect of typing an address, but that is
+convenience rather than security: the anon key is public, so the API can be called
+directly.
+
+For several named organisers without toggling settings each time, Supabase's *before user
+created* auth hook can check an allowlist table and reject anyone else. Not implemented —
+one owner per tournament is deliberate, see `docs/adr/0001-single-writer-organiser-public-read.md`.
+
 ## Project structure
 
 ```

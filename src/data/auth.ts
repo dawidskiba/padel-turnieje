@@ -36,12 +36,45 @@ export function useSession(): AuthState {
   return state
 }
 
+/**
+ * Supabase reports auth failures in English, which is no use in a Polish
+ * interface — and the messages are cryptic even in English. These are the four
+ * that actually happen, all of them configuration rather than user error, so the
+ * text says what to do rather than what went wrong.
+ */
+export function describeAuthError(message: string): string {
+  const lower = message.toLowerCase()
+
+  // Raised when new sign-ups are disabled and the address is not yet a user.
+  if (lower.includes('signups not allowed') || lower.includes('signup is disabled')) {
+    return 'Ten adres nie ma dostępu. Logowanie jest ograniczone do zaproszonych organizatorów.'
+  }
+  // The built-in mailer allows only a couple of messages per hour.
+  if (lower.includes('rate limit') || lower.includes('too many requests')) {
+    return 'Za dużo prób. Poczekaj kilka minut i spróbuj ponownie.'
+  }
+  // The app's own origin is missing from the redirect allowlist.
+  if (lower.includes('redirect') || lower.includes('invalid request')) {
+    return 'Ten adres aplikacji nie jest dopuszczony w Supabase (Authentication → URL Configuration).'
+  }
+  if (lower.includes('invalid') && lower.includes('email')) {
+    return 'Nieprawidłowy adres e-mail.'
+  }
+  return 'Nie udało się wysłać linku. Spróbuj ponownie.'
+}
+
 export async function sendMagicLink(email: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: `${window.location.origin}/turnieje` },
+    options: {
+      emailRedirectTo: `${window.location.origin}/turnieje`,
+      // Never create an account as a side effect of typing an address. With
+      // sign-ups open this changes nothing; with them closed it is what makes
+      // an unknown address fail cleanly instead of quietly becoming a user.
+      shouldCreateUser: false,
+    },
   })
-  if (error) throw new Error(error.message)
+  if (error) throw new Error(describeAuthError(error.message))
 }
 
 export async function signOut(): Promise<void> {
