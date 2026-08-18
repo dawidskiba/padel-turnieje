@@ -15,6 +15,7 @@ import { useCreateTournament } from '../data/hooks'
 import {
   MAX_GAME_POINTS,
   MIN_GAME_POINTS,
+  DEFAULT_NEUTRAL_ROUNDS,
   defaultCourtName,
   defaultRestPoints,
   errorsOf,
@@ -26,7 +27,7 @@ import type { Format, PairingFormula, Scoring, TeamFormat } from '../domain/type
 import { ChipInput } from '../ui/ChipInput'
 import { SeedingEditor } from '../ui/SeedingEditor'
 import type { Seeds } from '../ui/SeedingEditor'
-import { Button, Field, Notice, Panel, TextInput, cx } from '../ui/primitives'
+import { Button, Field, Notice, NumberInput, Panel, TextInput, cx } from '../ui/primitives'
 
 const GAME_POINT_PRESETS = [11, 16, 21]
 
@@ -118,7 +119,10 @@ export function CreateTournamentPage() {
   const [restPointsTouched, setRestPointsTouched] = useState(false)
   const [pairingFormula, setPairingFormula] = useState<PairingFormula>('1+4v2+3')
   const [scoring, setScoring] = useState<Scoring>('points')
-  const [neutralRounds, setNeutralRounds] = useState(1)
+  const [neutralRounds, setNeutralRounds] = useState(DEFAULT_NEUTRAL_ROUNDS)
+  // The custom box keeps its own text for the same reason NumberInput does: a
+  // cleared box must not parse to 0 and come back as a rendered 0.
+  const [customPointsText, setCustomPointsText] = useState('')
   const [participants, setParticipants] = useState<string[]>([])
   const [courts, setCourts] = useState<string[]>([defaultCourtName(0), defaultCourtName(1)])
   const [seeds, setSeeds] = useState<Seeds>({})
@@ -127,6 +131,11 @@ export function CreateTournamentPage() {
   function changeGamePoints(next: number) {
     setGamePoints(next)
     if (!restPointsTouched) setRestPoints(defaultRestPoints(next))
+  }
+
+  function choosePreset(preset: number) {
+    setCustomPointsText('')
+    changeGamePoints(preset)
   }
 
   const draft: DraftTournament = useMemo(
@@ -229,7 +238,7 @@ export function CreateTournamentPage() {
               <button
                 key={preset}
                 type="button"
-                onClick={() => changeGamePoints(preset)}
+                onClick={() => choosePreset(preset)}
                 aria-pressed={gamePoints === preset}
                 className={cx(
                   'rounded-lg border px-4 py-2.5 text-sm transition-colors',
@@ -247,9 +256,18 @@ export function CreateTournamentPage() {
                 type="number"
                 min={MIN_GAME_POINTS}
                 max={MAX_GAME_POINTS}
-                value={isCustomPoints ? gamePoints : ''}
+                value={isCustomPoints ? customPointsText || String(gamePoints) : ''}
                 placeholder="—"
-                onChange={(event) => changeGamePoints(Number(event.target.value))}
+                onChange={(event) => {
+                  const next = event.target.value
+                  setCustomPointsText(next)
+                  if (next.trim() !== '' && Number.isFinite(Number(next))) {
+                    changeGamePoints(Number(next))
+                  }
+                }}
+                onBlur={() => {
+                  if (customPointsText.trim() === '') setCustomPointsText(String(gamePoints))
+                }}
                 className={cx(
                   'w-20 rounded-lg border bg-bg px-2 py-2 text-text',
                   isCustomPoints ? 'border-accent' : 'border-border',
@@ -269,14 +287,13 @@ export function CreateTournamentPage() {
               : `Domyślnie połowa punktów meczu (${defaultRestPoints(gamePoints)}).`
           }
         >
-          <TextInput
+          <NumberInput
             id="restPoints"
-            type="number"
             min={0}
             value={restPoints}
-            onChange={(event) => {
+            onValue={(next) => {
               setRestPointsTouched(true)
-              setRestPoints(Number(event.target.value))
+              setRestPoints(next)
             }}
             className="w-28"
           />
@@ -327,13 +344,12 @@ export function CreateTournamentPage() {
             htmlFor="neutralRounds"
             hint="Pierwsze rundy Mexicano są losowane, więc kort nic wtedy nie mówi o poziomie. W tych rundach każdy kort płaci tyle samo — liczy się tylko wynik."
           >
-            <TextInput
+            <NumberInput
               id="neutralRounds"
-              type="number"
               min={0}
               max={10}
               value={neutralRounds}
-              onChange={(event) => setNeutralRounds(Number(event.target.value))}
+              onValue={setNeutralRounds}
               className="w-28"
             />
           </Field>

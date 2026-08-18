@@ -38,6 +38,7 @@ Nowy turniej
   Liczenie punktów  (●) Zdobyte punkty        (Mexicano only)
                     ( ) Z wagą kortu
   Rundy bez wagi    [ 1 ]                     (only when weighted)
+                                              default 1: round 1 is a blind draw
   Uczestnicy (16)   [ Iga|                               ]
                     ⓧAnn ⓧBob ⓧCara ⓧDan ⓧEwa ⓧFred …
   Korty (4)         ⓧKort 1 ⓧKort 2 ⓧKort 3 ⓧKort 4
@@ -51,6 +52,14 @@ so an organiser who ignores it gets the behaviour they had before; picking court
 reveals the neutral-rounds field, which is meaningless otherwise. Setting it to 0 warns:
 weighting round 1 banks the luck of a blind draw. See
 [`requirements-mexicano.md`](./requirements-mexicano.md) §3.
+
+### Number fields
+
+Every numeric setting keeps its own text while it is being edited, so the box can be
+emptied. Binding `value={n}` to `Number(event.target.value)` cannot: clearing parses to 0,
+the 0 comes straight back as the rendered value, and typing the real number then reads
+`04`. An empty box leaves the setting on its last good value rather than flashing a
+validation error mid-keystroke, and blurring it empty restores the number.
 
 ### Roster entry
 

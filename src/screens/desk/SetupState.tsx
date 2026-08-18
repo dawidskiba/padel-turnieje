@@ -14,7 +14,7 @@ import { matchCount, participantsPerMatch, participantsPerSide } from '../../dom
 import { defaultRestPoints, validateDraft } from '../../domain/validation'
 import { SeedingEditor } from '../../ui/SeedingEditor'
 import type { Seeds } from '../../ui/SeedingEditor'
-import { Button, Notice, Panel, TextInput, cx } from '../../ui/primitives'
+import { Button, Notice, NumberInput, Panel, cx } from '../../ui/primitives'
 
 const GAME_POINT_PRESETS = [11, 16, 21]
 
@@ -134,12 +134,11 @@ export function SetupState({
                 {preset}
               </button>
             ))}
-            <TextInput
-              type="number"
+            <NumberInput
               min={1}
               max={99}
               value={gamePoints}
-              onChange={(event) => setGamePoints(Number(event.target.value))}
+              onValue={setGamePoints}
               className="w-20 py-2"
               aria-label="Punkty w meczu"
             />
@@ -159,11 +158,10 @@ export function SetupState({
         ) : null}
 
         <Row label="Punkty za pauzę">
-          <TextInput
-            type="number"
+          <NumberInput
             min={0}
             value={restPoints}
-            onChange={(event) => setRestPoints(Number(event.target.value))}
+            onValue={setRestPoints}
             className="w-20 py-2"
             aria-label="Punkty za pauzę"
           />

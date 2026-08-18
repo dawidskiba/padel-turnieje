@@ -12,6 +12,14 @@ import type { Format, PairingFormula, Scoring, TeamFormat } from './types'
 /** Opening rounds where the court does not count. More than this is unusual. */
 export const MAX_NEUTRAL_ROUNDS = 10
 
+/**
+ * One round. A Mexicano's first round is a blind draw, so the court says nothing
+ * about anybody's level and weighting it would bank that luck; by round 2 the
+ * courts have been earned. Matches the column default, so a payload that omits
+ * the setting and a form that shows it agree.
+ */
+export const DEFAULT_NEUTRAL_ROUNDS = 1
+
 export type IssueLevel = 'error' | 'warning'
 
 export interface Issue {

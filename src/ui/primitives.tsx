@@ -5,6 +5,7 @@
  * palette — that is what keeps both themes correct without duplicating markup.
  */
 
+import { useEffect, useState } from 'react'
 import type { ButtonHTMLAttributes, HTMLAttributes, InputHTMLAttributes, ReactNode } from 'react'
 
 function cx(...classes: Array<string | false | null | undefined>): string {
@@ -119,6 +120,59 @@ export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInput
         className,
       )}
       {...props}
+    />
+  )
+}
+
+/**
+ * A number field that can be emptied.
+ *
+ * `value={n} onChange={Number(...)}` looks obvious and is unusable: clearing the
+ * box parses to 0, the 0 comes straight back as the rendered value, and typing
+ * the real number then reads 04. So the box keeps its own text while it is being
+ * edited, and only tells the parent about text that is actually a number.
+ *
+ * An empty box leaves the parent on its last good value, so validation does not
+ * flash an error mid-keystroke; blurring it empty restores the number, because
+ * an empty numeric setting is not a state the rest of the app should have to
+ * handle.
+ */
+export function NumberInput({
+  value,
+  onValue,
+  className,
+  ...props
+}: {
+  value: number
+  onValue: (value: number) => void
+} & Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'onValue'>) {
+  const [text, setText] = useState(String(value))
+
+  // Follow the prop when it moves on its own — rest points tracking the game
+  // points, say — but not while the text says the same number, or every
+  // keystroke would fight the buffer.
+  useEffect(() => {
+    setText((current) => (Number(current) === value && current.trim() !== '' ? current : String(value)))
+  }, [value])
+
+  return (
+    <TextInput
+      type="number"
+      {...props}
+      className={className}
+      value={text}
+      onChange={(event) => {
+        const next = event.target.value
+        setText(next)
+        if (next.trim() === '') return
+        const parsed = Number(next)
+        if (Number.isFinite(parsed)) onValue(parsed)
+      }}
+      onBlur={(event) => {
+        if (text.trim() === '' || !Number.isFinite(Number(text))) setText(String(value))
+        else setText(String(Number(text)))
+        props.onBlur?.(event)
+      }}
     />
   )
 }

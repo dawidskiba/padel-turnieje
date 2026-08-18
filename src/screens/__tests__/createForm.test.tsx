@@ -41,6 +41,26 @@ async function click(element: HTMLElement) {
 const restPointsInput = (c: HTMLElement) =>
   c.querySelector<HTMLInputElement>('#restPoints')!
 
+/**
+ * React tracks an input's value, so assigning `.value` directly never reaches
+ * onChange. The native setter is the only way to type in a test.
+ */
+async function type(input: HTMLInputElement, value: string) {
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
+  await act(async () => {
+    setter.call(input, value)
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+}
+
+async function blur(input: HTMLInputElement) {
+  // React maps onBlur onto focusout, which bubbles to its root listener; a
+  // plain non-bubbling 'blur' event never reaches the handler.
+  await act(async () => {
+    input.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
+  })
+}
+
 describe('create form', () => {
   it('starts on the documented defaults: 21 points, 11 for a rest', async () => {
     const container = await mount()
@@ -136,12 +156,67 @@ describe('create form', () => {
     await click(buttonWithText(container, 'Z wagą kortu — wygrana na Korcie 1 warta więcej'))
 
     const field = container.querySelector<HTMLInputElement>('#neutralRounds')!
-    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
-    await act(async () => {
-      setter.call(field, '0')
-      field.dispatchEvent(new Event('input', { bubbles: true }))
-    })
+    await type(field, '0')
 
     expect(container.textContent).toContain('szczęśliwy los w pierwszej rundzie')
+  })
+
+  it('lets a number field be emptied and retyped without a leading zero', async () => {
+    const container = await mount()
+    await click(buttonWithText(container, 'Mexicano'))
+    await click(buttonWithText(container, 'Z wagą kortu — wygrana na Korcie 1 warta więcej'))
+    const field = container.querySelector<HTMLInputElement>('#neutralRounds')!
+
+    // The bug this replaces: clearing parsed to 0, the 0 came back as the
+    // rendered value, and typing 4 read "04".
+    await type(field, '')
+    expect(field.value).toBe('')
+    await type(field, '4')
+    expect(field.value).toBe('4')
+  })
+
+  it('keeps the last good number while the box is empty', async () => {
+    const container = await mount()
+    // Rest points start at 11; emptying the box must not flash a validation
+    // error for 0, which is a legal but different setting.
+    const field = restPointsInput(container)
+    await type(field, '')
+
+    expect(field.value).toBe('')
+    expect(container.textContent).not.toContain('Punkty za pauzę nie mogą')
+  })
+
+  it('restores the number when an empty box loses focus', async () => {
+    const container = await mount()
+    const field = restPointsInput(container)
+    await type(field, '')
+    await blur(field)
+
+    expect(field.value).toBe('11')
+  })
+
+  it('sends what was typed, not what was rendered', async () => {
+    const container = await mount()
+    await click(buttonWithText(container, 'Mexicano'))
+    await click(buttonWithText(container, 'Z wagą kortu — wygrana na Korcie 1 warta więcej'))
+    const field = container.querySelector<HTMLInputElement>('#neutralRounds')!
+
+    await type(field, '')
+    await type(field, '3')
+    await blur(field)
+    expect(field.value).toBe('3')
+  })
+
+  it('clears the custom points box when a preset is picked', async () => {
+    const container = await mount()
+    const custom = [...container.querySelectorAll<HTMLInputElement>('input[type=number]')].find(
+      (i) => i.placeholder === '—',
+    )!
+
+    await type(custom, '24')
+    expect(custom.value).toBe('24')
+
+    await click(buttonWithText(container, '16'))
+    expect(custom.value).toBe('')
   })
 })
