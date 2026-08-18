@@ -78,8 +78,13 @@ export function courtBase(
  */
 export function marginBonus(scored: number, conceded: number, gamePoints: number): number {
   if (gamePoints <= 0) return 0
-  const raw = Math.round((MARGIN_CAP * (scored - conceded)) / gamePoints)
-  return Math.max(-MARGIN_CAP, Math.min(MARGIN_CAP, raw))
+  const exact = (MARGIN_CAP * (scored - conceded)) / gamePoints
+  // Rounded away from zero, not upwards: Math.round(-0.5) is -0 while Postgres
+  // round(-0.5) is -1, and the loser's margin is always negative. They diverge
+  // whenever the deficit is exactly a quarter of the target — 6:10 on a 16-point
+  // game — so the desk would show one standing and the database another.
+  const rounded = Math.sign(exact) * Math.round(Math.abs(exact))
+  return Math.max(-MARGIN_CAP, Math.min(MARGIN_CAP, rounded))
 }
 
 /** What a round in which somebody did not play is worth: the middle of the scale. */

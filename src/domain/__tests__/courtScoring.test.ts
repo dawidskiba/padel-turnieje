@@ -245,4 +245,23 @@ describe('court scoring matches the SQL view', () => {
     expect(p('E')).toBe(12 + 4 * 10)
     expect(p('A')).toBeGreaterThan(p('E'))
   })
+
+  it('rounds a half margin away from zero, as Postgres does', () => {
+    // 2 * 4 / 16 is exactly 0.5 either way. Math.round would send the winner to
+    // 1 and the loser to -0, splitting the domain from the SQL view.
+    expect(marginBonus(10, 6, 16)).toBe(1)
+    expect(marginBonus(6, 10, 16)).toBe(-1)
+  })
+
+  it('never lets a margin favour the side that lost', () => {
+    // Every score at every preset: the loser's bonus can only ever be <= 0.
+    for (const gamePoints of [11, 16, 21, 24]) {
+      for (let scored = 0; scored < gamePoints; scored += 1) {
+        const conceded = gamePoints - scored
+        const bonus = marginBonus(scored, conceded, gamePoints)
+        if (scored < conceded) expect(bonus).toBeLessThanOrEqual(0)
+        if (scored > conceded) expect(bonus).toBeGreaterThanOrEqual(0)
+      }
+    }
+  })
 })
