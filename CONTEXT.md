@@ -116,6 +116,13 @@ broken by who Rested longest ago, then by entry order. Rest counts never differ 
 than one across the roster. The Organiser may override an individual Rest assignment;
 the Tournament warns when an override unbalances the counts.
 
+The Final Round breaks the tie differently: among those who have Rested fewest times, the
+lowest-placed Rest first. The Final Round is seeded from the Standing so the contenders
+meet on Kort 1, and a position-blind tie-break can Rest one of them out of the decider —
+they would collect Rest Points while the leader played for the title. The rest count still
+comes first, so the never-more-than-one guarantee is untouched: the Standing only decides
+which of the equally Rested sits out.
+
 The Rest Rota is the only part of a generated Round the Organiser can change. Pairings
 themselves are not editable — a hand-made swap would break the partner-variety
 guarantee. A Round that is wrong as a whole is undone and regenerated instead.

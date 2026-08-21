@@ -14,6 +14,7 @@ import { chooseResting, playingParticipants } from './rota'
 import { rankedParticipantIds } from './standings'
 import {
   DEFAULT_PAIRING_FORMULA,
+  activeParticipants,
   availableCourts,
   matchCount,
   participantsPerSide,
@@ -187,7 +188,18 @@ export function generateRound(
     ? new Set(state.participants.filter((p) => p.seedCourtId !== null).map((p) => p.id))
     : new Set<string>()
 
-  const resting = options.resting ?? chooseResting(state, roundNumber, history, pinned)
+  // The final round is seeded from the standing, so its rest comes off the
+  // bottom of the standing too — otherwise a contender can be rested out of the
+  // decider. Ranked over everyone active, before anyone is set aside.
+  const standingOrder = isFinal
+    ? rankedParticipantIds(
+        state,
+        new Set(activeParticipants(state, roundNumber).map((p) => p.id)),
+      )
+    : undefined
+
+  const resting =
+    options.resting ?? chooseResting(state, roundNumber, history, pinned, standingOrder)
   const players = playingParticipants(state, roundNumber, resting)
 
   const formula = state.config.pairingFormula ?? DEFAULT_PAIRING_FORMULA

@@ -3,6 +3,13 @@
  *
  * Identical in both formats. In Mexicano this runs *before* ranking, so rest is
  * independent of position — a leader is as likely to sit out as anyone else.
+ *
+ * The final round is the exception: it is seeded from the Standing so the
+ * contenders meet on Kort 1, and a rank-blind rota can rest one of them out of
+ * the decider. Observed in an 18-player Americano: the runner-up, four points
+ * off the lead, was rested for the final round and took rest points while the
+ * leader played. So the final round rests from the bottom of the Standing —
+ * within the fewest-rested group, so the counts stay balanced.
  */
 
 import type { History } from './history'
@@ -25,16 +32,29 @@ export function chooseResting(
    * that away. They still rest if there are not enough other candidates.
    */
   protect: Set<string> = new Set(),
+  /**
+   * Rest the lowest-placed first, for the final round. Ranked best-first, as
+   * `rankedParticipantIds` returns it. Applied *below* the rest count, so the
+   * "never more than one apart" guarantee is untouched: the standing only
+   * decides which of the equally-rested sits out.
+   */
+  standingOrder?: string[],
 ): string[] {
   const active = activeParticipants(state, roundNumber)
   const playing = matchCount(state, roundNumber) * participantsPerMatch(state.config.teamFormat)
   const restingCount = active.length - playing
   if (restingCount <= 0) return []
 
+  // Unranked participants sort as if last, so a name missing from the standing
+  // is a rest candidate rather than a crash.
+  const place = new Map(standingOrder?.map((id, index) => [id, index]))
+  const placeOf = (id: string) => place.get(id) ?? active.length
+
   const queue = [...active].sort(
     (a, b) =>
       Number(protect.has(a.id)) - Number(protect.has(b.id)) ||
       history.restCount(a.id) - history.restCount(b.id) ||
+      (standingOrder ? placeOf(b.id) - placeOf(a.id) : 0) ||
       history.lastRestedRound(a.id) - history.lastRestedRound(b.id) ||
       a.entryOrder - b.entryOrder,
   )

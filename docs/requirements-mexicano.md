@@ -37,7 +37,7 @@ set at setup.
 
 1. Decide who rests, using the **Rest Rota** — the same balanced fewest-rests-first rule
    as Americano. Rest is independent of position: a leader is as likely to sit out as
-   anyone else.
+   anyone else. The final round is the exception — see §4.
 2. Rank the remaining active participants by the current **Standing**. Ties break by
    points, then difference, then wins, then entry order, so the ladder is deterministic.
 3. Assign to courts as a ladder, filling `Kort 1` upward.
@@ -182,6 +182,11 @@ Americano borrows this: its final round is seeded by the standings using
 `#1+#4 v #2+#3`, applied literally with no repeat avoidance, so a tournament that spent
 the evening maximising variety still ends with the contenders opposing each other on one
 court. The partner-variety guarantee is waived for that round only.
+
+In both formats the final round also rests by the standings: among those who have rested
+fewest times, the lowest-placed sit out. A rank-blind rota can otherwise rest a contender
+out of the round that decides the tournament. The rest count remains the first key, so the
+counts stay within one.
 
 ---
 

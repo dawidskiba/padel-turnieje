@@ -134,6 +134,12 @@ than scattered across courts. Applied literally — no repeat avoidance — and 
 partner-variety guarantee is waived for that round only. In teams format the final round
 pairs adjacent ranks: `#1 v #2` on `Kort 1`, `#3 v #4` on `Kort 2`.
 
+Its rest is seeded by the standings too: among the participants who have rested fewest
+times, the lowest-placed rest first. Otherwise the ordinary rota, which knows nothing
+about position, can rest a contender out of the decider — and rest points would hand them
+a share of the finish they never played for. The rest count is still the first key, so
+counts stay within one of each other.
+
 ---
 
 ## 3. Scoring and standings
