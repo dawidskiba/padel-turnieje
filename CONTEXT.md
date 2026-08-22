@@ -69,6 +69,11 @@ zero. A Participant may also retire: they keep the points they earned,
 stay in the Standing marked as retired, earn nothing further, and are excluded from
 later Rounds.
 
+Retiring is for a Participant some Round has already counted — played, Rested, or
+credited for missing it. One no Round has counted is instead **removed**, leaving no
+trace: before the first Round that is everyone, and a no-show should not appear in the
+Standing marked as retired with nothing behind it.
+
 ## Round
 
 One synchronised slice of the Tournament. Every Court hosts at most one Match per

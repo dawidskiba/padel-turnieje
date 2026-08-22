@@ -11,6 +11,7 @@ import { useState } from 'react'
 
 import type { TournamentBundle, TournamentPhase } from '../../data/mapping'
 import type { TournamentState } from '../../domain/types'
+import { hasRoundOnRecord } from '../../domain/types'
 import { defaultCourtName, joinCreditPerRound } from '../../domain/validation'
 import { Sheet } from '../../ui/Sheet'
 import { Button, Notice, TextInput, cx } from '../../ui/primitives'
@@ -19,6 +20,7 @@ export interface SettingsActions {
   addParticipant: (name: string, creditMissedRounds: boolean) => void
   retireParticipant: (participantId: string, afterRound: number) => void
   unretireParticipant: (participantId: string) => void
+  removeParticipant: (participantId: string) => void
   addCourt: (name: string, position: number) => void
   renameCourt: (courtId: string, name: string) => void
   removeCourt: (courtId: string, fromRound: number) => void
@@ -98,6 +100,8 @@ export function SettingsSheet({
   state,
   phase,
   actions,
+  rosterError,
+  courtError,
 }: {
   open: boolean
   onClose: () => void
@@ -105,6 +109,13 @@ export function SettingsSheet({
   state: TournamentState
   phase: TournamentPhase
   actions: SettingsActions
+  /**
+   * Why the last roster or court change did not land, shown next to the buttons
+   * that caused it. These writes used to fail in silence — the tap did nothing
+   * and the organiser had no way to tell a rejected write from a slow one.
+   */
+  rosterError?: string | null
+  courtError?: string | null
 }) {
   const [name, setName] = useState(bundle.tournament.name)
   const [confirmUndo, setConfirmUndo] = useState(false)
@@ -201,26 +212,51 @@ export function SettingsSheet({
                   ) : null}
                 </span>
 
-                {locked ? null : participant.retiredAfterRound !== null ? (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => actions.unretireParticipant(participant.id)}
-                  >
-                    Przywróć
-                  </Button>
-                ) : (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => actions.retireParticipant(participant.id, lastRound)}
-                  >
-                    Wycofaj
-                  </Button>
+                {locked ? null : (
+                  <div className="flex items-center gap-1">
+                    {participant.retiredAfterRound !== null ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => actions.unretireParticipant(participant.id)}
+                      >
+                        Przywróć
+                      </Button>
+                    ) : hasRoundOnRecord(state, participant.id) ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => actions.retireParticipant(participant.id, lastRound)}
+                      >
+                        Wycofaj
+                      </Button>
+                    ) : null}
+
+                    {/*
+                      Nobody a round has counted can be deleted — retiring is the
+                      only exit once there are points to preserve. Before the
+                      first round that is everyone, which is the whole point: a
+                      no-show should leave no trace, and "Wycofaj" here would
+                      leave a name in the standings marked RET with nothing
+                      behind it.
+                    */}
+                    {hasRoundOnRecord(state, participant.id) ? null : (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-danger hover:text-danger hover:bg-danger/10"
+                        onClick={() => actions.removeParticipant(participant.id)}
+                      >
+                        Usuń
+                      </Button>
+                    )}
+                  </div>
                 )}
               </li>
             ))}
           </ul>
+
+          {rosterError ? <Notice tone="danger">{rosterError}</Notice> : null}
 
           {locked ? null : (
             <AddParticipant
@@ -278,6 +314,8 @@ export function SettingsSheet({
               ? '🔒 Turniej zakończony — kortów nie da się już zmienić.'
               : 'Zmiany kortów obowiązują od następnej rundy. Rozegrane rundy zostają bez zmian.'}
           </p>
+
+          {courtError ? <Notice tone="danger">{courtError}</Notice> : null}
 
           {locked ? null : (
             <Button

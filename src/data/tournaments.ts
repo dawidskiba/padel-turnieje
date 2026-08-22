@@ -211,6 +211,21 @@ export async function retireParticipant(
   if (error) throw new Error(error.message)
 }
 
+/**
+ * Hard removal, for a participant no round has counted yet — a no-show before
+ * the first round, or someone added between rounds and taken off again before
+ * playing. Retiring them instead would leave a name in the standings with
+ * nothing behind it, which reads like a result rather than an absence.
+ *
+ * Only ever called for a participant with no round on record (see
+ * hasRoundOnRecord); the cascade on round_participants and match_participants
+ * therefore has nothing to take with it.
+ */
+export async function removeParticipant(participantId: string): Promise<void> {
+  const { error } = await supabase.from('participants').delete().eq('id', participantId)
+  if (error) throw new Error(error.message)
+}
+
 export async function unretireParticipant(participantId: string): Promise<void> {
   const { error } = await supabase
     .from('participants')

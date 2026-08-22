@@ -170,6 +170,27 @@ export function isActiveInRound(participant: Participant, roundNumber: number): 
   return true
 }
 
+/**
+ * Whether any round has counted this participant — played, rested, or been
+ * credited for missing one.
+ *
+ * This is the line between removing someone and retiring them. A participant no
+ * round has touched has nothing worth preserving, so they can leave without a
+ * trace; once a round has counted them their points are part of the standing,
+ * and retiring — keeping the points, marked RET — is the only honest exit.
+ */
+export function hasRoundOnRecord(state: TournamentState, participantId: string): boolean {
+  return state.rounds.some(
+    (round) =>
+      round.resting.includes(participantId) ||
+      round.credited.includes(participantId) ||
+      round.matches.some(
+        (match) =>
+          match.sideA.includes(participantId) || match.sideB.includes(participantId),
+      ),
+  )
+}
+
 export function isCourtAvailableInRound(court: Court, roundNumber: number): boolean {
   return court.removedFromRound === null || roundNumber < court.removedFromRound
 }

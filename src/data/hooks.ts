@@ -131,6 +131,14 @@ export function useRetireParticipant(tournamentId: string | undefined) {
   })
 }
 
+export function useRemoveParticipant(tournamentId: string | undefined) {
+  const invalidate = useInvalidate(tournamentId)
+  return useMutation({
+    mutationFn: (participantId: string) => api.removeParticipant(participantId),
+    onSuccess: invalidate,
+  })
+}
+
 export function useUnretireParticipant(tournamentId: string | undefined) {
   const invalidate = useInvalidate(tournamentId)
   return useMutation({

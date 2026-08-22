@@ -26,6 +26,7 @@ import {
   useCourtMutations,
   useCreateRound,
   usePendingScores,
+  useRemoveParticipant,
   useRetireParticipant,
   useTournamentSettings,
   useTournamentView,
@@ -72,6 +73,7 @@ export function DeskPage() {
   const addParticipant = useAddParticipant(id)
   const retire = useRetireParticipant(id)
   const unretire = useUnretireParticipant(id)
+  const removeParticipant = useRemoveParticipant(id)
   const updateSeed = useUpdateSeed(id)
   const courtMutations = useCourtMutations(id)
   const settings = useTournamentSettings(id)
@@ -251,6 +253,39 @@ export function DeskPage() {
     return matchId ? pending.some((p) => p.matchId === matchId) : false
   }
 
+  /**
+   * The reason a roster or court change was refused, for the settings sheet.
+   *
+   * These are plain table writes with real server-side guards behind them — the
+   * finished-tournament trigger, the retired-after-round check — and a rejected
+   * one used to leave the sheet looking exactly like a successful one.
+   */
+  const messageOf = (...mutations: Array<{ error: unknown }>): string | null => {
+    const failed = mutations.find((mutation) => mutation.error)
+    if (!failed) return null
+    return failed.error instanceof Error ? failed.error.message : 'Nie udało się zapisać zmiany.'
+  }
+
+  const rosterMutations = [addParticipant, retire, unretire, removeParticipant]
+  const courtMutationList = [
+    courtMutations.add,
+    courtMutations.rename,
+    courtMutations.remove,
+    courtMutations.restore,
+  ]
+
+  const rosterError = messageOf(...rosterMutations)
+  const courtError = messageOf(...courtMutationList)
+
+  /**
+   * The section shows one notice for the whole group, so clear the group before
+   * firing: a failure still sitting on a sibling mutation would otherwise stay
+   * on screen after the next action had succeeded.
+   */
+  const clearErrors = (group: Array<{ error: unknown; reset: () => void }>) => {
+    for (const mutation of group) if (mutation.error) mutation.reset()
+  }
+
   const restRequired = proposal
     ? proposal.resting.length
     : state.participants.length - matchCount(state, nextNumber) * participantsPerMatch(state.config.teamFormat)
@@ -355,17 +390,41 @@ export function DeskPage() {
         bundle={bundle}
         state={state}
         phase={phase}
+        rosterError={rosterError}
+        courtError={courtError}
         actions={{
-          addParticipant: (name, creditMissedRounds) =>
-            addParticipant.mutate({ name, creditMissedRounds }),
-          retireParticipant: (participantId, afterRound) =>
-            retire.mutate({ participantId, afterRound }),
-          unretireParticipant: (participantId) => unretire.mutate(participantId),
-          addCourt: (name, position) => courtMutations.add.mutate({ name, position }),
-          renameCourt: (courtId, name) => courtMutations.rename.mutate({ courtId, name }),
-          removeCourt: (courtId, fromRound) =>
-            courtMutations.remove.mutate({ courtId, fromRound }),
-          restoreCourt: (courtId) => courtMutations.restore.mutate(courtId),
+          addParticipant: (name, creditMissedRounds) => {
+            clearErrors(rosterMutations)
+            addParticipant.mutate({ name, creditMissedRounds })
+          },
+          retireParticipant: (participantId, afterRound) => {
+            clearErrors(rosterMutations)
+            retire.mutate({ participantId, afterRound })
+          },
+          unretireParticipant: (participantId) => {
+            clearErrors(rosterMutations)
+            unretire.mutate(participantId)
+          },
+          removeParticipant: (participantId) => {
+            clearErrors(rosterMutations)
+            removeParticipant.mutate(participantId)
+          },
+          addCourt: (name, position) => {
+            clearErrors(courtMutationList)
+            courtMutations.add.mutate({ name, position })
+          },
+          renameCourt: (courtId, name) => {
+            clearErrors(courtMutationList)
+            courtMutations.rename.mutate({ courtId, name })
+          },
+          removeCourt: (courtId, fromRound) => {
+            clearErrors(courtMutationList)
+            courtMutations.remove.mutate({ courtId, fromRound })
+          },
+          restoreCourt: (courtId) => {
+            clearErrors(courtMutationList)
+            courtMutations.restore.mutate(courtId)
+          },
           renameTournament: (name) => settings.rename.mutate(name),
           undoLastRound: () => {
             const last = bundle.rounds.reduce<{ id: string; number: number } | null>(
