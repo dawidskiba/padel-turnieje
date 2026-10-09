@@ -312,7 +312,7 @@ export function CreateTournamentPage() {
           <Field
             label="Rundy mieszane"
             htmlFor="openingRounds"
-            hint="Rundy łączone jak w Americano — bez powtórek partnerów, z nowymi rywalami — zanim pary zaczną wynikać z tabeli. Jedna runda losowa to klasyczne Mexicano; po niej tabela to jeszcze głównie szczęście losowania."
+            hint="Rundy mieszane jak w Americano zanim pary zaczną wynikać z tabeli."
           >
             <NumberInput
               id="openingRounds"
