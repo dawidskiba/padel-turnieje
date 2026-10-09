@@ -164,8 +164,10 @@ would bank the luck of that draw. Only the margin counts until they are over.
 ## Standing
 
 The ranking of Participants by points accumulated across all Rounds, Rest Points
-included. Ordered by total points, then point difference (scored minus conceded), then
-Matches won — draws count towards neither wins nor losses. Participants still equal
+included. Ordered by total points, then Matches won — draws count towards neither wins nor
+losses — then point difference (scored minus conceded). Tournaments created before
+this order was adopted keep their original one, difference before wins, so no
+finished result changes. Participants still equal
 after all three share a position.
 
 ## Organiser

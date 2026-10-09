@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { computeStandings } from '../standings'
+import { compareStandingRows, computeStandings, tiedForPosition } from '../standings'
+import type { StandingRow, Tiebreak } from '../types'
 import { commit, courts, makeState, roster } from './factory'
 import { generateRound } from '../round'
 
@@ -85,7 +86,7 @@ describe('standings', () => {
     expect(ewa.rests).toBe(0)
   })
 
-  it('orders by points, then difference, then wins, then entry order', () => {
+  it('orders by points, then wins, then difference, then entry order', () => {
     const participants = roster('Ann', 'Bob', 'Cara', 'Dan')
     const state = makeState({
       participants,
@@ -120,6 +121,40 @@ describe('standings', () => {
     expect(rows[2].position).toBe(2)
     // standard competition ranking skips after a tie
     expect(rows[3].position).toBe(4)
+  })
+
+  describe('between wins and point difference', () => {
+    const row = (name: string, wins: number, difference: number, entryOrder: number): StandingRow => ({
+      participantId: name.toLowerCase(),
+      name,
+      entryOrder,
+      retired: false,
+      points: 40,
+      rawPoints: 40,
+      difference,
+      wins,
+      draws: 0,
+      losses: 3 - wins,
+      rests: 0,
+      position: 0,
+    })
+    // Level on points. Cara won once by a landslide, Bob twice by a point.
+    const cara = row('Cara', 1, 15, 1)
+    const bob = row('Bob', 2, -3, 2)
+    const order = (tiebreak: Tiebreak) =>
+      [cara, bob].sort((a, b) => compareStandingRows(a, b, tiebreak)).map((r) => r.name)
+
+    it('ranks more matches won first under the wins tie-break', () => {
+      expect(order('wins')).toEqual(['Bob', 'Cara'])
+    })
+
+    it('keeps the better difference first for tournaments created before the switch', () => {
+      expect(order('difference')).toEqual(['Cara', 'Bob'])
+    })
+
+    it('does not share a position either way', () => {
+      expect(tiedForPosition(bob, cara)).toBe(false)
+    })
   })
 
   it('keeps a retired participant in the table with the points they earned', () => {

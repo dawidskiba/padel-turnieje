@@ -15,6 +15,13 @@ export type Format = 'americano' | 'mexicano'
 export type TeamFormat = 'individual' | 'teams'
 export type Side = 'a' | 'b'
 
+/**
+ * What separates Participants level on points: `wins` puts matches won ahead of
+ * point difference, `difference` the reverse. Tournaments created before the
+ * switch keep `difference`, so no finished event changes its winner.
+ */
+export type Tiebreak = 'wins' | 'difference'
+
 /** How a Court's four players are split into two sides, by rank in their group. */
 export type PairingFormula = '1+4v2+3' | '1+2v3+4' | '1+3v2+4'
 
@@ -66,6 +73,7 @@ export interface TournamentConfig {
    * Mexicano draw has not sorted itself yet. Only meaningful under `courts`.
    */
   neutralRounds: number
+  tiebreak: Tiebreak
 }
 
 export interface Match {

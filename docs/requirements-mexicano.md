@@ -166,10 +166,13 @@ the evening goes on.
 
 ### 3.4 Ranking
 
-Ordered by scheme points, then point difference, then matches won, then raw match points,
+Ordered by scheme points, then matches won, then point difference, then raw match points,
 then entry order. Difference and raw points stay in match points under both schemes, so the
 tie-breaks mean the same thing either way — and under court scoring the integers are small,
 so ties are common and the tie-breaks earn their keep.
+
+Tournaments created before wins moved ahead of difference keep their original order
+(`tournaments.tiebreak = 'difference'`), so finished results stand.
 
 ---
 

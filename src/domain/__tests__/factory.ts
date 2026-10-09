@@ -9,6 +9,7 @@ import type {
   Round,
   Scoring,
   TeamFormat,
+  Tiebreak,
   TournamentState,
 } from '../types'
 
@@ -47,6 +48,7 @@ export function makeState(options: {
   pairingFormula?: PairingFormula | null
   scoring?: Scoring
   neutralRounds?: number
+  tiebreak?: Tiebreak
   rounds?: Round[]
 }): TournamentState {
   return {
@@ -58,6 +60,7 @@ export function makeState(options: {
       pairingFormula: options.pairingFormula ?? null,
       scoring: options.scoring ?? 'points',
       neutralRounds: options.neutralRounds ?? 1,
+      tiebreak: options.tiebreak ?? 'wins',
     },
     participants: options.participants,
     courts: options.courts,

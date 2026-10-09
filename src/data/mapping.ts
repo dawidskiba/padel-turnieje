@@ -114,6 +114,7 @@ export function toTournamentState(bundle: TournamentBundle): TournamentState {
       pairingFormula: bundle.tournament.pairing_formula,
       scoring: bundle.tournament.scoring,
       neutralRounds: bundle.tournament.neutral_rounds,
+      tiebreak: bundle.tournament.tiebreak,
     },
     participants: bundle.participants.map(toParticipant).sort((a, b) => a.entryOrder - b.entryOrder),
     courts: bundle.courts.map(toCourt).sort((a, b) => a.position - b.position),

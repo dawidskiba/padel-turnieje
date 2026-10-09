@@ -150,8 +150,11 @@ for each round rested.
 Standings order:
 
 1. total points
-2. point difference (scored − conceded)
-3. matches won — draws count towards neither wins nor losses
+2. matches won — draws count towards neither wins nor losses
+3. point difference (scored − conceded)
+
+Tournaments created before this order was adopted keep difference ahead of wins
+(`tournaments.tiebreak = 'difference'`), so a finished event never changes its winner.
 
 A rested round contributes its Rest Points to *both* scored and conceded, so it moves a
 participant's total but leaves their difference unchanged. A credited round behaves the

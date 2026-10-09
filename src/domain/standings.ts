@@ -7,7 +7,7 @@
  * thing locally so round generation does not need a round trip.
  */
 
-import type { StandingRow, TournamentState } from './types'
+import type { StandingRow, Tiebreak, TournamentState } from './types'
 import { joinCreditPerRound } from './validation'
 import { courtRanks, creditValue, playedValue, restValue, scaleFor } from './scoring'
 
@@ -113,7 +113,8 @@ export function computeStandings(state: TournamentState): StandingRow[] {
     } satisfies StandingRow
   })
 
-  rows.sort(compareStandingRows)
+  const { tiebreak } = state.config
+  rows.sort((a, b) => compareStandingRows(a, b, tiebreak))
 
   // Standard competition ranking: equal rows share a position, then it skips.
   let position = 0
@@ -128,15 +129,17 @@ export function computeStandings(state: TournamentState): StandingRow[] {
 }
 
 /**
- * Points, then point difference, then matches won. Draws count towards neither
- * wins nor losses. Entry order is the final, purely deterministic tie-break —
- * without it the Mexicano ladder would depend on row order.
+ * Points, then matches won and point difference in the order `tiebreak` says.
+ * Draws count towards neither wins nor losses. Entry order is the final, purely
+ * deterministic tie-break — without it the Mexicano ladder would depend on row
+ * order.
  */
-export function compareStandingRows(a: StandingRow, b: StandingRow): number {
+export function compareStandingRows(a: StandingRow, b: StandingRow, tiebreak: Tiebreak): number {
+  const wins = b.wins - a.wins
+  const difference = b.difference - a.difference
   return (
     b.points - a.points ||
-    b.difference - a.difference ||
-    b.wins - a.wins ||
+    (tiebreak === 'wins' ? wins || difference : difference || wins) ||
     // Under court scoring the integers are small and ties are common, so raw
     // points earn their keep as a further tie-break before entry order.
     b.rawPoints - a.rawPoints ||
