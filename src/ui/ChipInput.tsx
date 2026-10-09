@@ -1,6 +1,7 @@
 /**
  * Type a name, press Enter, it becomes a chip and the field clears for the
- * next. Pasting a multi-line list adds every line at once — an organiser with
+ * next. Moving to another field does the same; switching tabs mid-name does
+ * not. Pasting a multi-line list adds every line at once — an organiser with
  * the names in a WhatsApp message is finished in one paste.
  *
  * Duplicates are refused as they are typed rather than at submit, and
@@ -97,7 +98,12 @@ export function ChipInput({
         }}
         onKeyDown={onKeyDown}
         onPaste={onPaste}
-        onBlur={commitDraft}
+        onBlur={() => {
+          // Leaving the page — another tab, another app — blurs the field too,
+          // and committing then splits a half-typed name into two chips. Only a
+          // move to something else on this page counts as finishing the name.
+          if (document.hasFocus()) commitDraft()
+        }}
         autoComplete="off"
       />
 

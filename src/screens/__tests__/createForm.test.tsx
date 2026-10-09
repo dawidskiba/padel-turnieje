@@ -3,7 +3,7 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { CreateTournamentPage } from '../CreateTournamentPage'
 
@@ -218,5 +218,37 @@ describe('create form', () => {
 
     await click(buttonWithText(container, '16'))
     expect(custom.value).toBe('')
+  })
+})
+
+describe('create form roster while typing', () => {
+  const participantsInput = (c: HTMLElement) =>
+    c.querySelector<HTMLInputElement>('#participants')!
+  const chipCount = (c: HTMLElement) => c.textContent?.match(/Uczestnicy \((\d+)\)/)?.[1]
+
+  it('keeps a half-typed name in the field when the page loses focus', async () => {
+    const container = await mount()
+    const input = participantsInput(container)
+    await type(input, 'Kas')
+
+    const hasFocus = vi.spyOn(document, 'hasFocus').mockReturnValue(false)
+    await blur(input)
+    hasFocus.mockRestore()
+
+    expect(input.value).toBe('Kas')
+    expect(chipCount(container)).toBe('0')
+  })
+
+  it('adds the name when focus moves to something else on the page', async () => {
+    const container = await mount()
+    const input = participantsInput(container)
+    await type(input, 'Kasia')
+
+    const hasFocus = vi.spyOn(document, 'hasFocus').mockReturnValue(true)
+    await blur(input)
+    hasFocus.mockRestore()
+
+    expect(input.value).toBe('')
+    expect(chipCount(container)).toBe('1')
   })
 })
