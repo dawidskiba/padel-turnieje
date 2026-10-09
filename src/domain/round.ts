@@ -71,6 +71,34 @@ function tieBreakOrder(players: Participant[], variant: number): Map<string, num
   return new Map(shuffled.map((id, index) => [id, index]))
 }
 
+/**
+ * Americano's draw: the order the schedule settles its ties in.
+ *
+ * Round 1 has no history, so every pairing priority ties and this order alone
+ * decides the round. Entry order paired the roster off as it was typed — Ann &
+ * Bob, Cara & Dan — and rested the first names entered, every time.
+ *
+ * Shuffling only round 1 was tried and measured worse: later rounds settle their
+ * ties greedily, and a round 1 that disagrees with them costs a full round robin
+ * an early rematch in up to four tournaments in ten. So the draw is fixed for
+ * the whole tournament instead — participant ids are random UUIDs, and ranking
+ * by them is a random order that every round agrees on. The schedule is then
+ * exactly the entry-order one with the names shuffled, so every guarantee it
+ * had still holds, and the first proposal stays stable on regeneration.
+ */
+function inDrawOrder(state: TournamentState): TournamentState {
+  const rank = new Map(
+    state.participants
+      .map((p) => p.id)
+      .sort()
+      .map((id, index) => [id, index + 1]),
+  )
+  return {
+    ...state,
+    participants: state.participants.map((p) => ({ ...p, entryOrder: rank.get(p.id)! })),
+  }
+}
+
 export function nextRoundNumber(state: TournamentState): number {
   return state.rounds.reduce((max, r) => Math.max(max, r.number), 0) + 1
 }
@@ -198,9 +226,13 @@ export function generateRound(
       )
     : undefined
 
+  // Standings, display order and Mexicano keep entry order; only Americano's
+  // schedule follows the draw.
+  const drawn = state.config.format === 'americano' ? inDrawOrder(state) : state
+
   const resting =
-    options.resting ?? chooseResting(state, roundNumber, history, pinned, standingOrder)
-  const players = playingParticipants(state, roundNumber, resting)
+    options.resting ?? chooseResting(drawn, roundNumber, history, pinned, standingOrder)
+  const players = playingParticipants(drawn, roundNumber, resting)
 
   const formula = state.config.pairingFormula ?? DEFAULT_PAIRING_FORMULA
 

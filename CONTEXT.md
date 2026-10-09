@@ -117,7 +117,8 @@ have a latecomer arrive as though they had won every Round they missed.
 ## Rest Rota
 
 The rule deciding who Rests in a Round: those who have Rested fewest times so far, ties
-broken by who Rested longest ago, then by entry order. Rest counts never differ by more
+broken by who Rested longest ago, then by the Americano draw (a random order fixed per
+Tournament) or, in Mexicano, by entry order. Rest counts never differ by more
 than one across the roster. The Organiser may override an individual Rest assignment;
 the Tournament warns when an override unbalances the counts.
 

@@ -39,7 +39,7 @@ set at setup.
    as Americano. Rest is independent of position: a leader is as likely to sit out as
    anyone else. The final round is the exception — see §4.
 2. Rank the remaining active participants by the current **Standing**. Ties break by
-   points, then difference, then wins, then entry order, so the ladder is deterministic.
+   the ranking order of §3.4, ending in entry order, so the ladder is deterministic.
 3. Assign to courts as a ladder, filling `Kort 1` upward.
 
 **Individual format** — participants taken four at a time, one group per court:

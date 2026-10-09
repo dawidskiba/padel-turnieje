@@ -119,3 +119,62 @@ describe('americano pairing', () => {
     }
   })
 })
+
+describe('the americano draw', () => {
+  // Participant ids are random UUIDs in the database; these stand in for them.
+  function withIds(ids: string[]): TournamentState {
+    const names = ['Ann', 'Bob', 'Cara', 'Dan', 'Ewa', 'Filip', 'Gosia', 'Hubert', 'Iga']
+    return makeState({
+      participants: names.map((name, i) => participant(name, i + 1, { id: ids[i] })),
+      courts: courts(2),
+    })
+  }
+  const nameOf = (state: TournamentState, id: string) =>
+    state.participants.find((p) => p.id === id)!.name
+  const firstRound = (state: TournamentState) => {
+    const round = generateRound(state)
+    return {
+      matches: round.matches.map((m) => [m.sideA, m.sideB].map((side) => side.map((id) => nameOf(state, id)))),
+      resting: round.resting.map((id) => nameOf(state, id)),
+    }
+  }
+
+  it('does not pair round 1 off in the order the names were typed', () => {
+    // Ids ranked opposite to entry order: Iga's sorts first, Ann's last.
+    const state = withIds(['i9', 'h8', 'g7', 'f6', 'e5', 'd4', 'c3', 'b2', 'a1'])
+    const round = firstRound(state)
+
+    // Entry order would rest Ann and pair Bob & Cara; the draw rests whoever
+    // it ranks first instead.
+    expect(round.resting).toEqual(['Iga'])
+    expect(round.matches.flat()).not.toContainEqual(['Bob', 'Cara'])
+  })
+
+  it('gives the same proposal for the same tournament', () => {
+    const state = withIds(['k3', 'q8', 'a7', 'z1', 'm4', 'c9', 'x2', 'e5', 't6'])
+    expect(firstRound(state)).toEqual(firstRound(state))
+  })
+
+  it('keeps the eight-team round robin whatever the draw', () => {
+    // Shuffling round 1 alone broke this in up to four draws in ten.
+    for (const ids of [
+      ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'],
+      ['c', 'a', 'h', 'e', 'b', 'g', 'd', 'f'],
+      ['e', 'h', 'b', 'f', 'a', 'd', 'g', 'c'],
+    ]) {
+      let state = makeState({
+        participants: ids.map((id, i) => participant(`T${i + 1}`, i + 1, { id })),
+        courts: courts(3),
+        teamFormat: 'teams',
+      })
+      for (let round = 1; round <= 6; round++) {
+        const history = historyOf(state)
+        const proposal = generateRound(state)
+        for (const match of proposal.matches) {
+          expect(history.opponentCount(match.sideA[0], match.sideB[0])).toBe(0)
+        }
+        state = commit(state, proposal, () => 13)
+      }
+    }
+  })
+})

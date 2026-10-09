@@ -95,10 +95,20 @@ would be invalidated the first time somebody arrived late or a court was rained 
 Pairings are **not** hand-editable. A round whose schedule is wrong is undone and
 regenerated.
 
+**The draw.** Wherever the rules above leave a tie, it is settled by a random order
+fixed per tournament (participant ids are random UUIDs; ranking by them is the draw).
+In round 1 nothing has happened yet, so everything ties and the draw alone decides the
+round — partners, opponents and who rests are random rather than the order the names
+were typed. Every later round uses the same draw, which matters: the schedule is the
+entry-order one with the names shuffled, so every guarantee above still holds. Drawing
+round 1 alone and letting later rounds settle ties by entry order cost the eight-team
+round robin an early rematch in up to four tournaments in ten. The same state still
+produces the same proposal; "Przetasuj" picks another equally valid arrangement.
+
 ### 2.3 Rest rota
 
 Resting participants are those who have rested fewest times so far. Ties break by who
-rested longest ago, then by entry order. Rest counts never differ by more than one
+rested longest ago, then by the draw (§2.2) — in Mexicano, by entry order. Rest counts never differ by more than one
 across the roster.
 
 The organiser may swap a resting participant for a playing one before the round is
