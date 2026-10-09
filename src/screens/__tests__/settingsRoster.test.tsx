@@ -100,6 +100,7 @@ function noopActions(): SettingsActions {
     renameCourt: vi.fn(),
     removeCourt: vi.fn(),
     restoreCourt: vi.fn(),
+    deleteCourt: vi.fn(),
     renameTournament: vi.fn(),
     undoLastRound: vi.fn(),
     finish: vi.fn(),

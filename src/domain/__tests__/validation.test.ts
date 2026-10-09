@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   defaultCourtName,
+  nextCourtName,
   defaultRestPoints,
   joinCreditPerRound,
   errorsOf,
@@ -72,6 +73,15 @@ describe('court name default', () => {
   it('numbers from 1', () => {
     expect(defaultCourtName(0)).toBe('Kort 1')
     expect(defaultCourtName(3)).toBe('Kort 4')
+  })
+
+  it('offers the next number after the existing courts', () => {
+    expect(nextCourtName(['Kort 1', 'Kort 2'])).toBe('Kort 3')
+  })
+
+  it('skips a name still taken after a court in the middle was deleted', () => {
+    // Kort 2 of three deleted: counting says "Kort 3", which already exists.
+    expect(nextCourtName(['Kort 1', 'Kort 3'])).toBe('Kort 4')
   })
 })
 

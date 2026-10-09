@@ -25,17 +25,12 @@ import type { DraftTournament, Issue } from '../domain/validation'
 import { PAIRING_FORMULAS, participantsPerSide } from '../domain/types'
 import type { Format, PairingFormula, Scoring, TeamFormat } from '../domain/types'
 import { ChipInput } from '../ui/ChipInput'
+import { FORMULA_LABEL } from '../ui/format'
 import { SeedingEditor } from '../ui/SeedingEditor'
 import type { Seeds } from '../ui/SeedingEditor'
 import { Button, Field, Notice, NumberInput, Panel, TextInput, cx } from '../ui/primitives'
 
 const GAME_POINT_PRESETS = [11, 16, 21]
-
-const FORMULA_LABEL: Record<PairingFormula, string> = {
-  '1+4v2+3': '#1+#4 v #2+#3 — zbalansowana',
-  '1+2v3+4': '#1+#2 v #3+#4 — silni razem',
-  '1+3v2+4': '#1+#3 v #2+#4',
-}
 
 function Section({
   title,

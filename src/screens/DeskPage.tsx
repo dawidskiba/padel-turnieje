@@ -58,11 +58,6 @@ export function DeskPage() {
   const [variant, setVariant] = useState(0)
   /** Set when an open proposal had to be recomputed because the roster moved. */
   const [proposalStale, setProposalStale] = useState(false)
-  /**
-   * Set when the organiser discards a proposal before the first round, which is
-   * the only way back to the setup screen now that it is skipped on arrival.
-   */
-  const [showSetup, setShowSetup] = useState(false)
   const [scoreTarget, setScoreTarget] = useState<(ScoreTarget & { side: 'a' | 'b' }) | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
@@ -135,29 +130,6 @@ export function DeskPage() {
   }, [rosterSignature, proposal, view, variant])
 
   /**
-   * Land on the courts, not on a summary of what was just typed.
-   *
-   * Creating a tournament arrives here in setup, and the organiser has no
-   * interest in re-reading their own configuration — they want to see the first
-   * round. Propose it immediately; discarding reveals the setup screen for the
-   * cases where something does need changing.
-   */
-  const autoProposed = useRef(false)
-  useEffect(() => {
-    autoProposed.current = false
-  }, [id])
-
-  useEffect(() => {
-    if (!view || view.phase !== 'setup') return
-    if (proposal || showSetup || autoProposed.current) return
-    if (matchCount(view.state, 1) === 0) return
-
-    autoProposed.current = true
-    proposalSignature.current = rosterSignature
-    setProposal(generateRound(view.state, { isFinal: false }))
-  }, [view, proposal, showSetup, rosterSignature])
-
-  /**
    * The final round closes the tournament once its results are in. Deferred
    * until nothing is queued: finishing while a score is still pending would
    * publish a table that is about to change.
@@ -184,20 +156,9 @@ export function DeskPage() {
   const nextNumber = (currentRound?.number ?? 0) + 1
   const history = historyOf(state)
 
-  // The auto-propose effect runs *after* the first paint, so rendering the
-  // setup screen in the meantime shows it for one frame and then replaces it.
-  // Predict it here and render nothing instead of that flash.
-  const aboutToPropose =
-    phase === 'setup' &&
-    !proposal &&
-    !showSetup &&
-    !autoProposed.current &&
-    matchCount(state, 1) > 0
-
   function propose(isFinal: boolean) {
     if (!state) return
     setVariant(0)
-    setShowSetup(false)
     setProposalStale(false)
     proposalSignature.current = rosterSignature
     setProposal(generateRound(state, { isFinal }))
@@ -272,6 +233,7 @@ export function DeskPage() {
     courtMutations.rename,
     courtMutations.remove,
     courtMutations.restore,
+    courtMutations.discard,
   ]
 
   const rosterError = messageOf(...rosterMutations)
@@ -286,21 +248,82 @@ export function DeskPage() {
     for (const mutation of group) if (mutation.error) mutation.reset()
   }
 
+  const rosterActions = {
+    addParticipant: (name: string, creditMissedRounds: boolean) => {
+      clearErrors(rosterMutations)
+      addParticipant.mutate({ name, creditMissedRounds })
+    },
+    retireParticipant: (participantId: string, afterRound: number) => {
+      clearErrors(rosterMutations)
+      retire.mutate({ participantId, afterRound })
+    },
+    unretireParticipant: (participantId: string) => {
+      clearErrors(rosterMutations)
+      unretire.mutate(participantId)
+    },
+    removeParticipant: (participantId: string) => {
+      clearErrors(rosterMutations)
+      removeParticipant.mutate(participantId)
+    },
+  }
+
+  const courtActions = {
+    addCourt: (name: string, position: number) => {
+      clearErrors(courtMutationList)
+      courtMutations.add.mutate({ name, position })
+    },
+    renameCourt: (courtId: string, name: string) => {
+      clearErrors(courtMutationList)
+      courtMutations.rename.mutate({ courtId, name })
+    },
+    removeCourt: (courtId: string, fromRound: number) => {
+      clearErrors(courtMutationList)
+      courtMutations.remove.mutate({ courtId, fromRound })
+    },
+    restoreCourt: (courtId: string) => {
+      clearErrors(courtMutationList)
+      courtMutations.restore.mutate(courtId)
+    },
+    deleteCourt: (courtId: string) => {
+      clearErrors(courtMutationList)
+      courtMutations.discard.mutate(courtId)
+    },
+  }
+
+  const deleteTournament = () => {
+    settings.remove.mutate(undefined, {
+      // Leave the desk only once the delete has actually landed, so a failure
+      // is visible here rather than looking like success.
+      onSuccess: () => {
+        setSettingsOpen(false)
+        navigate('/turnieje', { replace: true })
+      },
+    })
+  }
+
   const restRequired = proposal
     ? proposal.resting.length
     : state.participants.length - matchCount(state, nextNumber) * participantsPerMatch(state.config.teamFormat)
 
   return (
     <>
-      {phase === 'setup' && !proposal && !aboutToPropose ? (
+      {phase === 'setup' && !proposal ? (
         <SetupState
           state={state}
+          rosterError={rosterError}
+          courtError={courtError}
+          deleteError={
+            settings.remove.error instanceof Error ? settings.remove.error.message : null
+          }
+          deleting={settings.remove.isPending}
           actions={{
+            ...rosterActions,
+            ...courtActions,
             updateScoring: (scoring) => settings.scoring.mutate(scoring),
             updateSeed: (participantId, seedCourtId, seedSide) =>
               updateSeed.mutate({ participantId, seedCourtId, seedSide }),
             start: () => propose(false),
-            openSettings: () => setSettingsOpen(true),
+            deleteTournament,
           }}
         />
       ) : null}
@@ -337,8 +360,6 @@ export function DeskPage() {
                 setVariant(0)
                 setProposalStale(false)
                 proposalSignature.current = null
-                // Before round 1 this is the only route back to setup.
-                if (phase === 'setup') setShowSetup(true)
               },
               reshuffleProposal: reshuffle,
               changeResting: () => setRestPickerOpen(true),
@@ -393,38 +414,8 @@ export function DeskPage() {
         rosterError={rosterError}
         courtError={courtError}
         actions={{
-          addParticipant: (name, creditMissedRounds) => {
-            clearErrors(rosterMutations)
-            addParticipant.mutate({ name, creditMissedRounds })
-          },
-          retireParticipant: (participantId, afterRound) => {
-            clearErrors(rosterMutations)
-            retire.mutate({ participantId, afterRound })
-          },
-          unretireParticipant: (participantId) => {
-            clearErrors(rosterMutations)
-            unretire.mutate(participantId)
-          },
-          removeParticipant: (participantId) => {
-            clearErrors(rosterMutations)
-            removeParticipant.mutate(participantId)
-          },
-          addCourt: (name, position) => {
-            clearErrors(courtMutationList)
-            courtMutations.add.mutate({ name, position })
-          },
-          renameCourt: (courtId, name) => {
-            clearErrors(courtMutationList)
-            courtMutations.rename.mutate({ courtId, name })
-          },
-          removeCourt: (courtId, fromRound) => {
-            clearErrors(courtMutationList)
-            courtMutations.remove.mutate({ courtId, fromRound })
-          },
-          restoreCourt: (courtId) => {
-            clearErrors(courtMutationList)
-            courtMutations.restore.mutate(courtId)
-          },
+          ...rosterActions,
+          ...courtActions,
           renameTournament: (name) => settings.rename.mutate(name),
           undoLastRound: () => {
             const last = bundle.rounds.reduce<{ id: string; number: number } | null>(
@@ -443,16 +434,7 @@ export function DeskPage() {
             settings.reopen.mutate()
             setSettingsOpen(false)
           },
-          deleteTournament: () => {
-            settings.remove.mutate(undefined, {
-              // Leave the desk only once the delete has actually landed, so a
-              // failure is visible here rather than looking like success.
-              onSuccess: () => {
-                setSettingsOpen(false)
-                navigate('/turnieje', { replace: true })
-              },
-            })
-          },
+          deleteTournament,
         }}
       />
 

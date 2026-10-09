@@ -181,8 +181,12 @@ export function useCourtMutations(tournamentId: string | undefined) {
     mutationFn: (courtId: string) => api.restoreCourt(courtId),
     onSuccess: invalidate,
   })
+  const discard = useMutation({
+    mutationFn: (courtId: string) => api.deleteCourt(courtId),
+    onSuccess: invalidate,
+  })
 
-  return { add, rename, remove, restore }
+  return { add, rename, remove, restore, discard }
 }
 
 export function useTournamentSettings(tournamentId: string | undefined) {

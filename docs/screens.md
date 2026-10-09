@@ -83,29 +83,49 @@ Three states, following the tournament's own lifecycle.
 
 ### Setup — before round 1
 
-Skipped on arrival. Creating a tournament lands on the first round's proposal
-instead: the organiser has just typed the configuration and has no interest in
-re-reading it. Discarding the proposal reveals this screen, for the cases where
-something genuinely needs changing before play starts.
+Where a configured tournament waits until play starts, and where the desk opens until
+then. Creating a tournament lands here, not on a round-1 proposal: between configuring
+and starting, the roster and the courts are what actually change — a no-show, a late
+arrival, a court that turns out to be booked.
 
 ```
 Środa Americano — przed startem                        [⚙]
 
-  Uczestnicy 18                                [zarządzaj]
-  Korty 4                                      [zarządzaj]
-  Punkty w meczu 21  ·  Punkty za pauzę 11      (edytowalne)
+  Format         Mexicano · indywidualny
+  Formuła par    #1+#4 v #2+#3 — zbalansowana       (Mexicano indywidualne)
+  Punkty w meczu 21  ·  Punkty za pauzę 11          (edytowalne)
   Liczenie punktów: z wagą kortu, 1 runda bez wagi   (read-only)
 
   ⚠ 2 osoby pauzują co rundę
 
+  UCZESTNICY (18)
+    Ann                                            [usuń]
+    …
+    [ Nowy uczestnik        ]  [dodaj]
+
+  KORTY (4)
+    [ Kort 1 ]                                     [usuń]
+    …
+    [+ Dodaj Kort 5]
+
   Rozstawienie (tylko Mexicano)                     [ustaw]
 
                               [ rozpocznij turniej ]
+
+                                   usuń turniej
 ```
 
 Scoring settings are still editable here and nowhere later, so this state makes them
 visible rather than burying them. Mexicano seeding lives here too, which is what allows
 an organiser to pin the draw and close the tab before play starts.
+
+Participants and courts are removed outright here — nothing has been played, so there
+is nothing for retiring or switching off to preserve. Deleting the tournament asks once
+("Tak, usuń turniej") rather than for the typed name the settings sheet demands: before
+round 1 only the configuration is lost.
+
+"Rozpocznij turniej" proposes round 1. Nothing is written until the organiser confirms
+it; "Odrzuć" comes back to this screen.
 
 ### Running — the split
 

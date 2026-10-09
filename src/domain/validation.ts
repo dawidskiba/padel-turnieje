@@ -78,6 +78,19 @@ export function defaultCourtName(index: number): string {
   return `Kort ${index + 1}`
 }
 
+/**
+ * The first "Kort N" not already taken. Counting courts is not enough once one
+ * can be deleted: with Kort 2 of three gone, the count says "Kort 3", which
+ * exists, and the unique name index refuses the insert.
+ */
+export function nextCourtName(existing: string[]): string {
+  const taken = new Set(existing.map((name) => name.trim().toLowerCase()))
+  for (let index = existing.length; ; index++) {
+    const name = defaultCourtName(index)
+    if (!taken.has(name.toLowerCase())) return name
+  }
+}
+
 /** Names are unique case-insensitively, so "ann" cannot join "Ann". */
 function duplicates(names: string[]): string[] {
   const seen = new Set<string>()

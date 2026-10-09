@@ -1,10 +1,15 @@
 /**
- * Before round 1. Shows what was configured, keeps the scoring settings
- * editable here and nowhere later, and surfaces the warnings that only become
- * visible once the roster and the courts are both known.
+ * Before round 1 — where a configured tournament waits until play starts.
+ *
+ * Shows what was configured, keeps the scoring settings editable here and
+ * nowhere later, and surfaces the warnings that only become visible once the
+ * roster and the courts are both known. The roster and the courts are edited
+ * here directly rather than behind the gear: between creating a tournament and
+ * starting it, the no-show and the late arrival are exactly what changes.
  *
  * Mexicano seeding lives here too, which is what lets an organiser pin the draw
- * and close the tab before play starts.
+ * and close the tab before play starts. Starting proposes round 1; nothing is
+ * written until the organiser confirms it, and discarding comes back here.
  */
 
 import { useState } from 'react'
@@ -12,17 +17,20 @@ import { useState } from 'react'
 import type { TournamentState } from '../../domain/types'
 import { matchCount, participantsPerMatch, participantsPerSide } from '../../domain/types'
 import { defaultRestPoints, validateDraft } from '../../domain/validation'
+import { FORMULA_LABEL } from '../../ui/format'
 import { SeedingEditor } from '../../ui/SeedingEditor'
 import type { Seeds } from '../../ui/SeedingEditor'
 import { Button, Notice, NumberInput, Panel, cx } from '../../ui/primitives'
+import { CourtsSection, ParticipantsSection } from './RosterSections'
+import type { CourtActions, ParticipantActions } from './RosterSections'
 
 const GAME_POINT_PRESETS = [11, 16, 21]
 
-export interface SetupActions {
+export interface SetupActions extends ParticipantActions, CourtActions {
   updateScoring: (scoring: { gamePoints: number; restPoints: number }) => void
   updateSeed: (participantId: string, seedCourtId: string | null, seedSide: 'a' | 'b' | null) => void
   start: () => void
-  openSettings: () => void
+  deleteTournament: () => void
 }
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -37,13 +45,25 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 export function SetupState({
   state,
   actions,
+  rosterError,
+  courtError,
+  deleteError,
+  deleting = false,
 }: {
   state: TournamentState
   actions: SetupActions
+  /** Why the last roster or court change did not land. */
+  rosterError?: string | null
+  courtError?: string | null
+  deleteError?: string | null
+  deleting?: boolean
 }) {
   const [gamePoints, setGamePoints] = useState(state.config.gamePoints)
   const [restPoints, setRestPoints] = useState(state.config.restPoints)
   const [showSeeding, setShowSeeding] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  const activeCourts = state.courts.filter((c) => c.removedFromRound === null)
 
   const perMatch = participantsPerMatch(state.config.teamFormat)
   const matches = matchCount(state, 1)
@@ -61,7 +81,7 @@ export function SetupState({
     scoring: state.config.scoring,
     neutralRounds: state.config.neutralRounds,
     participants: state.participants.map((p) => p.name),
-    courts: state.courts.map((c) => c.name),
+    courts: activeCourts.map((c) => c.name),
   })
   const blocking = issues.filter((i) => i.level === 'error')
 
@@ -97,19 +117,18 @@ export function SetupState({
   return (
     <div className="mx-auto max-w-2xl space-y-5">
       <Panel className="divide-y divide-border px-5">
-        <Row label="Uczestnicy">
-          <span className="text-text">{state.participants.length}</span>
-          <Button size="sm" variant="ghost" onClick={actions.openSettings}>
-            Zarządzaj
-          </Button>
+        <Row label="Format">
+          <span className="text-text">
+            {state.config.format === 'mexicano' ? 'Mexicano' : 'Americano'} ·{' '}
+            {state.config.teamFormat === 'teams' ? 'drużynowy' : 'indywidualny'}
+          </span>
         </Row>
 
-        <Row label="Korty">
-          <span className="text-text">{state.courts.length}</span>
-          <Button size="sm" variant="ghost" onClick={actions.openSettings}>
-            Zarządzaj
-          </Button>
-        </Row>
+        {state.config.pairingFormula ? (
+          <Row label="Formuła par">
+            <span className="text-text">{FORMULA_LABEL[state.config.pairingFormula]}</span>
+          </Row>
+        ) : null}
 
         <Row label="Punkty w meczu">
           <div className="flex flex-wrap items-center gap-2">
@@ -204,6 +223,14 @@ export function SetupState({
         </p>
       ) : null}
 
+      <Panel className="p-5">
+        <ParticipantsSection state={state} phase="setup" error={rosterError} actions={actions} />
+      </Panel>
+
+      <Panel className="p-5">
+        <CourtsSection state={state} phase="setup" error={courtError} actions={actions} />
+      </Panel>
+
       {state.config.format === 'mexicano' ? (
         <Panel className="space-y-4 p-5">
           <div>
@@ -246,6 +273,46 @@ export function SetupState({
           Zapisz punktację, zanim zaczniesz.
         </p>
       ) : null}
+
+      {/*
+        A plain confirm, not the type-the-name friction of the settings sheet:
+        before round 1 there are no results to lose, only the configuration.
+      */}
+      <div className="space-y-3 border-t border-border pt-6">
+        {confirmDelete ? (
+          <>
+            <Notice tone="danger">
+              Usunąć turniej razem z listą uczestników i kortów? Tego nie da się cofnąć.
+            </Notice>
+            <div className="flex justify-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(false)}>
+                Anuluj
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                disabled={deleting}
+                onClick={actions.deleteTournament}
+              >
+                Tak, usuń turniej
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="flex justify-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-danger hover:text-danger hover:bg-danger/10"
+              onClick={() => setConfirmDelete(true)}
+            >
+              Usuń turniej
+            </Button>
+          </div>
+        )}
+
+        {deleteError ? <Notice tone="danger">{deleteError}</Notice> : null}
+      </div>
     </div>
   )
 }

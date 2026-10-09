@@ -275,6 +275,17 @@ export async function removeCourt(courtId: string, fromRound: number): Promise<v
   if (error) throw new Error(error.message)
 }
 
+/**
+ * Hard removal, for before round 1 only: no match can reference the court yet,
+ * so there is nothing for the soft removal to protect, and a court switched off
+ * before anyone played on it would only clutter the list. Seeds pinned to it
+ * fall back to the draw (`on delete set null`).
+ */
+export async function deleteCourt(courtId: string): Promise<void> {
+  const { error } = await supabase.from('courts').delete().eq('id', courtId)
+  if (error) throw new Error(error.message)
+}
+
 export async function restoreCourt(courtId: string): Promise<void> {
   const { error } = await supabase
     .from('courts')
