@@ -24,7 +24,8 @@ The rule set that decides how Matches are generated each Round.
 
 - **Americano** — pairings rotate so Participants meet as many different partners and
   opponents as possible; pairings are decided independently of results.
-- **Mexicano** — pairings for the next Round are derived from the current Standing.
+- **Mexicano** — pairings for the next Round are derived from the current Standing, once
+  its Mixed Rounds are over.
 
 The distinction is when the schedule is decided: Americano settles it ahead of play,
 Mexicano reads it off the table each Round.
@@ -156,11 +157,20 @@ generated.
   because the Pairing Formula balances the top Court so it finishes close and pays little,
   while a wide-spread lower Court pays out nearly the whole target.
 
+## Mixed Rounds
+
+The opening Rounds of a Mexicano, paired by Americano's rules — no repeated partner while
+a fresh one exists, fresh opponents, spread across Courts — before the Standing decides
+who plays whom. Round 1 is the random draw that honours the Organiser's pins. One Mixed
+Round is classic Mexicano; after it the Standing is mostly the luck of that draw, and the
+Court Ladder would lock that luck in. More Mixed Rounds give it real results first.
+
 ## Neutral Rounds
 
-Opening Rounds of a court-weighted Mexicano during which every Court pays alike. The first
-Round is a blind draw, so the Court carries no information about strength and weighting it
-would bank the luck of that draw. Only the margin counts until they are over.
+Opening Rounds of a court-weighted Mexicano during which every Court pays alike. During
+the Mixed Rounds the Court carries no information about strength, and weighting it would
+bank the luck of the draw. Only the margin counts until they are over. Expected to cover
+the Mixed Rounds; fewer is allowed, with a warning.
 
 ## Standing
 

@@ -21,6 +21,7 @@ function draft(overrides: Partial<DraftTournament> = {}): DraftTournament {
     pairingFormula: null,
     scoring: 'points',
     neutralRounds: 1,
+    openingRounds: 1,
     participants: ['Ann', 'Bob', 'Cara', 'Dan'],
     courts: ['Kort 1'],
     ...overrides,
@@ -177,5 +178,32 @@ describe('validation — warns about the awkward', () => {
       courts: ['K1', 'K2', 'K3', 'K4'],
     })
     expect(validateDraft(d)).toEqual([])
+  })
+})
+
+describe('validation — mexicano opening rounds', () => {
+  const mexicano = (overrides: Partial<DraftTournament>) =>
+    draft({ format: 'mexicano', pairingFormula: '1+4v2+3', ...overrides })
+
+  it('needs at least one opening round, since round 1 always has to be drawn', () => {
+    const issues = validateDraft(mexicano({ openingRounds: 0 }))
+    expect(errorsOf(issues).map((i) => i.field)).toContain('openingRounds')
+  })
+
+  it('ignores the setting for Americano, where every round is mixed', () => {
+    expect(validateDraft(draft({ openingRounds: 0 })).some((i) => i.field === 'openingRounds')).toBe(false)
+  })
+
+  it('warns, without blocking, when the court is weighted during a mixed round', () => {
+    const weighted = mexicano({ scoring: 'courts', openingRounds: 3, neutralRounds: 2 })
+    expect(validateDraft(weighted)).toContainEqual(
+      expect.objectContaining({ level: 'warning', field: 'neutralRounds' }),
+    )
+    expect(isSubmittable(weighted)).toBe(true)
+  })
+
+  it('is quiet once the neutral rounds cover the mixed ones', () => {
+    const issues = validateDraft(mexicano({ scoring: 'courts', openingRounds: 3, neutralRounds: 3 }))
+    expect(issues.some((i) => i.field === 'neutralRounds')).toBe(false)
   })
 })

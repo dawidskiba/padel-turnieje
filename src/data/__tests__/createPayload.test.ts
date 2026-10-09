@@ -13,6 +13,7 @@ function draft(overrides: Partial<DraftTournament> = {}): DraftTournament {
     pairingFormula: '1+4v2+3',
     scoring: 'points',
     neutralRounds: 1,
+    openingRounds: 1,
     participants: ['Ann', 'Bob', 'Cara', 'Dan'],
     courts: ['Kort 1', 'Kort 2'],
     ...overrides,
@@ -75,5 +76,12 @@ describe('create payload', () => {
     expect(buildCreatePayload(draft()).pairing_formula).toBe('1+4v2+3')
     expect(buildCreatePayload(draft({ format: 'americano' })).pairing_formula).toBeNull()
     expect(buildCreatePayload(draft({ teamFormat: 'teams' })).pairing_formula).toBeNull()
+  })
+
+  it('sends the opening rounds for Mexicano and one for Americano', () => {
+    expect(buildCreatePayload(draft({ openingRounds: 3 })).opening_rounds).toBe(3)
+    expect(
+      buildCreatePayload(draft({ format: 'americano', openingRounds: 3 })).opening_rounds,
+    ).toBe(1)
   })
 })

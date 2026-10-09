@@ -31,6 +31,8 @@ export function buildCreatePayload(
     // across courts, so which court they are on says nothing about the opposition.
     scoring: draft.format === 'mexicano' ? draft.scoring : 'points',
     neutral_rounds: draft.neutralRounds,
+    // Americano mixes every round; the setting only shapes a Mexicano.
+    opening_rounds: draft.format === 'mexicano' ? draft.openingRounds : 1,
     courts,
     participants: draft.participants
       .map((participant) => participant.trim())

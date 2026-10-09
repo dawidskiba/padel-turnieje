@@ -80,6 +80,7 @@ export function SetupState({
     pairingFormula: state.config.pairingFormula,
     scoring: state.config.scoring,
     neutralRounds: state.config.neutralRounds,
+    openingRounds: state.config.openingRounds,
     participants: state.participants.map((p) => p.name),
     courts: activeCourts.map((c) => c.name),
   })
@@ -123,6 +124,16 @@ export function SetupState({
             {state.config.teamFormat === 'teams' ? 'drużynowy' : 'indywidualny'}
           </span>
         </Row>
+
+        {state.config.format === 'mexicano' ? (
+          <Row label="Rundy mieszane">
+            <span className="text-text">
+              {state.config.openingRounds === 1
+                ? '1 (losowa), potem według tabeli'
+                : `${state.config.openingRounds}, potem według tabeli`}
+            </span>
+          </Row>
+        ) : null}
 
         {state.config.pairingFormula ? (
           <Row label="Formuła par">

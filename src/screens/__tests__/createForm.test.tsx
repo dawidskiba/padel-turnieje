@@ -161,6 +161,23 @@ describe('create form', () => {
     expect(container.textContent).toContain('szczęśliwy los w pierwszej rundzie')
   })
 
+  it('raises the neutral rounds to cover the mixed ones', async () => {
+    const container = await mount()
+    await click(buttonWithText(container, 'Mexicano'))
+    await click(buttonWithText(container, 'Z wagą kortu — wygrana na Korcie 1 warta więcej'))
+
+    await type(container.querySelector<HTMLInputElement>('#openingRounds')!, '3')
+
+    expect(container.querySelector<HTMLInputElement>('#neutralRounds')!.value).toBe('3')
+  })
+
+  it('offers the mixed rounds for Mexicano only', async () => {
+    const container = await mount()
+    expect(container.querySelector('#openingRounds')).toBeNull()
+    await click(buttonWithText(container, 'Mexicano'))
+    expect(container.querySelector<HTMLInputElement>('#openingRounds')!.value).toBe('1')
+  })
+
   it('lets a number field be emptied and retyped without a leading zero', async () => {
     const container = await mount()
     await click(buttonWithText(container, 'Mexicano'))

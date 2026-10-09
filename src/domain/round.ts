@@ -226,9 +226,17 @@ export function generateRound(
       )
     : undefined
 
-  // Standings, display order and Mexicano keep entry order; only Americano's
-  // schedule follows the draw.
-  const drawn = state.config.format === 'americano' ? inDrawOrder(state) : state
+  // A Mexicano's opening rounds are mixed by Americano's rules before the
+  // ladder takes over: one random round leaves a Standing that is mostly the
+  // luck of the draw, and the ladder would lock that luck in. Round 1 stays the
+  // random draw that honours the organiser's pins.
+  const isMexicanoOpening =
+    state.config.format === 'mexicano' && roundNumber <= state.config.openingRounds
+
+  // Standings, display order and the Mexicano ladder keep entry order; only the
+  // mixed schedule follows the draw.
+  const mixed = state.config.format === 'americano' || isMexicanoOpening
+  const drawn = mixed ? inDrawOrder(state) : state
 
   const resting =
     options.resting ?? chooseResting(drawn, roundNumber, history, pinned, standingOrder)
@@ -254,7 +262,7 @@ export function generateRound(
     )
   } else if (isMexicanoFirstRound) {
     matches = seedFirstMexicanoRound(players, courts, state.config.teamFormat, rng)
-  } else if (state.config.format === 'mexicano') {
+  } else if (!mixed) {
     matches = generateSeeded(state, roundNumber, players, courts, history, formula, true)
   } else {
     matches = pairAmericano(

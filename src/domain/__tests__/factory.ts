@@ -48,6 +48,7 @@ export function makeState(options: {
   pairingFormula?: PairingFormula | null
   scoring?: Scoring
   neutralRounds?: number
+  openingRounds?: number
   tiebreak?: Tiebreak
   rounds?: Round[]
 }): TournamentState {
@@ -60,6 +61,7 @@ export function makeState(options: {
       pairingFormula: options.pairingFormula ?? null,
       scoring: options.scoring ?? 'points',
       neutralRounds: options.neutralRounds ?? 1,
+      openingRounds: options.openingRounds ?? 1,
       tiebreak: options.tiebreak ?? 'wins',
     },
     participants: options.participants,

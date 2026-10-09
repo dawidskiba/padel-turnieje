@@ -13,6 +13,15 @@ import type { Format, PairingFormula, Scoring, TeamFormat } from './types'
 export const MAX_NEUTRAL_ROUNDS = 10
 
 /**
+ * Mexicano rounds paired by Americano's rules before the ladder starts. One is
+ * the classic format — a random round 1, the ladder from round 2 — and the
+ * column default, so existing tournaments keep the schedule they were played
+ * under.
+ */
+export const DEFAULT_OPENING_ROUNDS = 1
+export const MAX_OPENING_ROUNDS = 10
+
+/**
  * One round. A Mexicano's first round is a blind draw, so the court says nothing
  * about anybody's level and weighting it would bank that luck; by round 2 the
  * courts have been earned. Matches the column default, so a payload that omits
@@ -24,7 +33,14 @@ export type IssueLevel = 'error' | 'warning'
 
 export interface Issue {
   level: IssueLevel
-  field: 'name' | 'participants' | 'courts' | 'gamePoints' | 'restPoints' | 'neutralRounds'
+  field:
+    | 'name'
+    | 'participants'
+    | 'courts'
+    | 'gamePoints'
+    | 'restPoints'
+    | 'neutralRounds'
+    | 'openingRounds'
   /** Polish, ready to show. */
   message: string
 }
@@ -38,6 +54,7 @@ export interface DraftTournament {
   pairingFormula: PairingFormula | null
   scoring: Scoring
   neutralRounds: number
+  openingRounds: number
   participants: string[]
   courts: string[]
 }
@@ -172,14 +189,31 @@ export function validateDraft(draft: DraftTournament): Issue[] {
         field: 'neutralRounds',
         message: `Rundy bez wagi kortu: liczba od 0 do ${MAX_NEUTRAL_ROUNDS}.`,
       })
-    } else if (draft.neutralRounds === 0) {
+    } else if (draft.format === 'mexicano' && draft.neutralRounds < draft.openingRounds) {
+      // A warning, not an error: 0 neutral rounds with one random round was
+      // always allowed, and tournaments were created that way.
       issues.push({
         level: 'warning',
         field: 'neutralRounds',
         message:
-          'Pierwsza runda Mexicano jest losowana, więc kort nic wtedy nie mówi o poziomie. Przy 0 rundach neutralnych szczęśliwy los w pierwszej rundzie od razu daje przewagę.',
+          draft.openingRounds === 1
+            ? 'Pierwsza runda Mexicano jest losowana, więc kort nic wtedy nie mówi o poziomie. Przy 0 rundach neutralnych szczęśliwy los w pierwszej rundzie od razu daje przewagę.'
+            : `Rundy mieszane (${draft.openingRounds}) nie układają kortów według tabeli, więc kort nic wtedy nie mówi o poziomie. Przy mniejszej liczbie rund bez wagi szczęśliwy los od razu daje przewagę.`,
       })
     }
+  }
+
+  if (
+    draft.format === 'mexicano' &&
+    (!Number.isInteger(draft.openingRounds) ||
+      draft.openingRounds < 1 ||
+      draft.openingRounds > MAX_OPENING_ROUNDS)
+  ) {
+    issues.push({
+      level: 'error',
+      field: 'openingRounds',
+      message: `Rundy mieszane: liczba od 1 do ${MAX_OPENING_ROUNDS}.`,
+    })
   }
 
   // Warnings — everything below is allowed, and the organiser may mean it.

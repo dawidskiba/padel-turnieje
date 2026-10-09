@@ -92,6 +92,7 @@ arrival, a court that turns out to be booked.
 Środa Americano — przed startem                        [⚙]
 
   Format         Mexicano · indywidualny
+  Rundy mieszane 3, potem według tabeli               (tylko Mexicano)
   Formuła par    #1+#4 v #2+#3 — zbalansowana       (Mexicano indywidualne)
   Punkty w meczu 21  ·  Punkty za pauzę 11          (edytowalne)
   Liczenie punktów: z wagą kortu, 1 runda bez wagi   (read-only)

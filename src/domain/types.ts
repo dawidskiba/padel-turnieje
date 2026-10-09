@@ -73,6 +73,12 @@ export interface TournamentConfig {
    * Mexicano draw has not sorted itself yet. Only meaningful under `courts`.
    */
   neutralRounds: number
+  /**
+   * Mexicano only: rounds paired by Americano's rules before the Standing takes
+   * over. One random round alone leaves a Standing that is mostly the luck of the
+   * draw, and the ladder then locks it in. 1 is the classic Mexicano.
+   */
+  openingRounds: number
   tiebreak: Tiebreak
 }
 

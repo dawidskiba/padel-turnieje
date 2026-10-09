@@ -18,6 +18,7 @@ function bundle(): TournamentBundle {
       pairing_formula: null,
       scoring: 'points',
       neutral_rounds: 1,
+      opening_rounds: 1,
       tiebreak: 'wins',
       created_at: '2026-08-17T17:00:00Z',
       finished_at: null,

@@ -16,6 +16,8 @@ import {
   MAX_GAME_POINTS,
   MIN_GAME_POINTS,
   DEFAULT_NEUTRAL_ROUNDS,
+  DEFAULT_OPENING_ROUNDS,
+  MAX_OPENING_ROUNDS,
   defaultCourtName,
   defaultRestPoints,
   errorsOf,
@@ -115,6 +117,7 @@ export function CreateTournamentPage() {
   const [pairingFormula, setPairingFormula] = useState<PairingFormula>('1+4v2+3')
   const [scoring, setScoring] = useState<Scoring>('points')
   const [neutralRounds, setNeutralRounds] = useState(DEFAULT_NEUTRAL_ROUNDS)
+  const [openingRounds, setOpeningRounds] = useState(DEFAULT_OPENING_ROUNDS)
   // The custom box keeps its own text for the same reason NumberInput does: a
   // cleared box must not parse to 0 and come back as a rendered 0.
   const [customPointsText, setCustomPointsText] = useState('')
@@ -126,6 +129,14 @@ export function CreateTournamentPage() {
   function changeGamePoints(next: number) {
     setGamePoints(next)
     if (!restPointsTouched) setRestPoints(defaultRestPoints(next))
+  }
+
+  // The court says nothing about level in a mixed round, so the rounds without
+  // court weight follow the mixed ones up. Only up: lowering the mixed rounds
+  // leaves a longer neutral stretch the organiser may have chosen on purpose.
+  function changeOpeningRounds(next: number) {
+    setOpeningRounds(next)
+    setNeutralRounds((current) => Math.max(current, next))
   }
 
   function choosePreset(preset: number) {
@@ -143,6 +154,7 @@ export function CreateTournamentPage() {
       pairingFormula: format === 'mexicano' && teamFormat === 'individual' ? pairingFormula : null,
       scoring: format === 'mexicano' ? scoring : 'points',
       neutralRounds,
+      openingRounds,
       participants,
       courts,
     }),
@@ -155,6 +167,7 @@ export function CreateTournamentPage() {
       pairingFormula,
       scoring,
       neutralRounds,
+      openingRounds,
       participants,
       courts,
     ],
@@ -297,6 +310,24 @@ export function CreateTournamentPage() {
 
         {showScoring ? (
           <Field
+            label="Rundy mieszane"
+            htmlFor="openingRounds"
+            hint="Rundy łączone jak w Americano — bez powtórek partnerów, z nowymi rywalami — zanim pary zaczną wynikać z tabeli. Jedna runda losowa to klasyczne Mexicano; po niej tabela to jeszcze głównie szczęście losowania."
+          >
+            <NumberInput
+              id="openingRounds"
+              min={1}
+              max={MAX_OPENING_ROUNDS}
+              value={openingRounds}
+              onValue={changeOpeningRounds}
+              className="w-28"
+            />
+          </Field>
+        ) : null}
+        <IssueList issues={issues} field="openingRounds" />
+
+        {showScoring ? (
+          <Field
             label="Liczenie punktów"
             hint="W Mexicano kort mówi, z kim grasz — a nie każdy kort płaci tyle samo."
           >
@@ -337,7 +368,7 @@ export function CreateTournamentPage() {
           <Field
             label="Rundy bez wagi kortu"
             htmlFor="neutralRounds"
-            hint="Pierwsze rundy Mexicano są losowane, więc kort nic wtedy nie mówi o poziomie. W tych rundach każdy kort płaci tyle samo — liczy się tylko wynik."
+            hint="W rundach mieszanych kort nic nie mówi o poziomie. W rundach bez wagi każdy kort płaci tyle samo — liczy się tylko wynik. Nie mniej niż rund mieszanych."
           >
             <NumberInput
               id="neutralRounds"

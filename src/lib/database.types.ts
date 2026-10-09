@@ -28,6 +28,8 @@ export interface TournamentRow {
   scoring: ScoringRow
   /** Opening rounds during which the court does not count. */
   neutral_rounds: number
+  /** Mexicano: rounds paired by Americano rules before the ladder starts. */
+  opening_rounds: number
   /** Which of wins and point difference ranks first after points. */
   tiebreak: TiebreakRow
   created_at: string
@@ -99,6 +101,7 @@ export interface CreateTournamentPayload {
   pairing_formula: PairingFormulaRow | null
   scoring?: ScoringRow
   neutral_rounds?: number
+  opening_rounds?: number
   courts: string[]
   participants: Array<{
     name: string

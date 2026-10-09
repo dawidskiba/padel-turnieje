@@ -26,6 +26,7 @@ function persistThenRead(state: TournamentState, proposal: ProposedRound): Propo
       pairing_formula: state.config.pairingFormula,
       scoring: 'points',
       neutral_rounds: 1,
+      opening_rounds: 1,
       tiebreak: 'wins',
       created_at: '2026-08-18T00:00:00Z', finished_at: null,
     },
