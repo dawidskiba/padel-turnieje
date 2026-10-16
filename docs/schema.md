@@ -74,6 +74,16 @@ round_participants
   participant_id      uuid -> participants
   status              playing | resting | credited
   primary key (round_id, participant_id)
+
+push_subscriptions                         -- ADR-0004, never readable by clients
+  id                  uuid pk
+  tournament_id       uuid -> tournaments  on delete cascade
+  participant_id      uuid -> participants on delete cascade
+  endpoint            text                 -- browser push services only
+  p256dh              text
+  auth                text
+  created_at          timestamptz
+  unique (tournament_id, endpoint)
 ```
 
 Tournament state is derived, not stored: no rounds means Setup, `finished_at` set means

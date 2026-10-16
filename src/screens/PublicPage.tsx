@@ -8,14 +8,16 @@
  * events.
  */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { PUBLIC_POLL_MS, usePublicTournament } from '../data/hooks'
 import { describeViewer, readViewerName, viewerCandidates, writeViewerName } from '../data/publicView'
+import { pushSupport, readPushName, subscribeToRounds, unsubscribeFromRounds } from '../data/push'
 import type { ViewerSituation } from '../data/publicView'
 import type { PublicTournament } from '../lib/database.types'
 import { formatSide } from '../ui/format'
+import { pointManifestAtCurrentPage } from '../ui/manifest'
 import { Button, Notice, Panel, Spinner, cx } from '../ui/primitives'
 
 function IdentityPicker({
@@ -84,6 +86,63 @@ function YourMatch({ situation, viewer }: { situation: ViewerSituation; viewer: 
   }
 
   return null
+}
+
+/**
+ * The opt-in for round notifications (ADR-0004). Shown only once the viewer has
+ * said who they are, because the subscription is stored under that name.
+ */
+function RoundAlerts({ slug, viewer }: { slug: string; viewer: string }) {
+  const support = pushSupport()
+  const [subscribedAs, setSubscribedAs] = useState(() => readPushName(slug))
+  const [busy, setBusy] = useState(false)
+  const [problem, setProblem] = useState<string | null>(null)
+
+  if (support === 'unsupported') return null
+
+  if (support === 'needs-home-screen') {
+    return (
+      <p className="text-sm text-text-muted">
+        Chcesz dostawać powiadomienie o korcie? Na iPhonie: <strong>Udostępnij → Do ekranu
+        początkowego</strong>, otwórz turniej z ikony i włącz powiadomienia tam.
+      </p>
+    )
+  }
+
+  const on = subscribedAs === viewer && Notification.permission === 'granted'
+
+  async function toggle() {
+    setBusy(true)
+    setProblem(null)
+    try {
+      if (on) {
+        await unsubscribeFromRounds(slug)
+        setSubscribedAs(null)
+      } else if ((await subscribeToRounds(slug, viewer)) === 'denied') {
+        setProblem('Powiadomienia są zablokowane — włącz je w ustawieniach przeglądarki dla tej strony.')
+      } else {
+        setSubscribedAs(viewer)
+      }
+    } catch {
+      setProblem('Nie udało się zmienić powiadomień. Spróbuj jeszcze raz.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-text-muted">
+          {on ? 'Dostaniesz powiadomienie, gdy zacznie się runda.' : 'Powiadom mnie, na którym korcie gram.'}
+        </p>
+        <Button variant={on ? 'ghost' : 'secondary'} size="sm" disabled={busy} onClick={toggle}>
+          {on ? 'Wyłącz' : 'Włącz powiadomienia'}
+        </Button>
+      </div>
+      {problem ? <Notice tone="danger">{problem}</Notice> : null}
+    </div>
+  )
 }
 
 function CurrentRound({ payload }: { payload: PublicTournament }) {
@@ -186,6 +245,9 @@ export function PublicPage() {
   )
   const [skipped, setSkipped] = useState(false)
 
+  // So that "Add to Home Screen" opens this tournament, not the sign-in page.
+  useEffect(() => pointManifestAtCurrentPage(), [slug])
+
   if (isLoading) return <Spinner label="Wczytuję…" />
 
   if (error) {
@@ -232,6 +294,8 @@ export function PublicPage() {
         <YourMatch situation={situation} viewer={viewer} />
       ) : null}
 
+      {viewer && slug && !data.tournament.finished ? <RoundAlerts slug={slug} viewer={viewer} /> : null}
+
       {!data.tournament.finished ? <CurrentRound payload={data} /> : null}
 
       <StandingsTable payload={data} viewer={viewer} />
@@ -245,7 +309,12 @@ export function PublicPage() {
             onClick={() => {
               setViewer(null)
               setSkipped(false)
-              if (slug) writeViewerName(slug, null)
+              if (slug) {
+                writeViewerName(slug, null)
+                // The subscription is under the old name; the next person on
+                // this phone must not get that player's courts.
+                if (readPushName(slug)) void unsubscribeFromRounds(slug).catch(() => {})
+              }
             }}
           >
             To nie ja ({viewer})

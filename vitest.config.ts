@@ -6,6 +6,6 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     setupFiles: ['./src/test-setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'supabase/functions/**/*.test.ts'],
   },
 })

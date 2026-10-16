@@ -43,3 +43,29 @@ where table_name = '<view>';
 ```
 
 `20260818040000` exists because `20260818030000` missed this.
+
+## Round notifications (ADR-0004)
+
+Push needs four things set up once per project, outside the migrations:
+
+1. A VAPID key pair: `npx web-push generate-vapid-keys`. The public key goes into
+   `VITE_VAPID_PUBLIC_KEY` (`.env` and the hosting provider's environment); without it
+   the public page hides the notifications button.
+2. Edge Function secrets, then deploy:
+   ```bash
+   supabase secrets set VAPID_PUBLIC_KEY=… VAPID_PRIVATE_KEY=… \
+     VAPID_SUBJECT=mailto:you@example.com NOTIFY_ROUND_SECRET=<random string>
+   supabase functions deploy notify-round
+   ```
+   `config.toml` sets `verify_jwt = false` for this function: the caller is the database,
+   which has no JWT. The function checks `NOTIFY_ROUND_SECRET` instead.
+3. Vault secrets the trigger reads, in the SQL editor:
+   ```sql
+   select vault.create_secret('https://<ref>.supabase.co/functions/v1/notify-round', 'notify_round_url');
+   select vault.create_secret('<same random string>', 'notify_round_secret');
+   ```
+4. `supabase db push` for `20260821000000_round_push_notifications.sql`.
+
+Until both vault secrets exist the trigger does nothing, so a round is never blocked by
+push being half-configured. Delivery results land in `net._http_response` and in the
+function's logs.
