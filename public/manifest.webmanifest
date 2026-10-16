@@ -3,7 +3,7 @@
   "short_name": "Garden Padel",
   "description": "Prowadzenie turniejów padlowych Americano i Mexicano.",
   "lang": "pl",
-  "start_url": "/",
+  "id": "/",
   "scope": "/",
   "display": "fullscreen",
   "display_override": ["fullscreen", "standalone"],

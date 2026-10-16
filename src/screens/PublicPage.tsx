@@ -8,7 +8,7 @@
  * events.
  */
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { PUBLIC_POLL_MS, usePublicTournament } from '../data/hooks'
@@ -17,7 +17,6 @@ import { pushSupport, readPushName, subscribeToRounds, unsubscribeFromRounds } f
 import type { ViewerSituation } from '../data/publicView'
 import type { PublicTournament } from '../lib/database.types'
 import { formatSide } from '../ui/format'
-import { pointManifestAtCurrentPage } from '../ui/manifest'
 import { Button, Notice, Panel, Spinner, cx } from '../ui/primitives'
 
 function IdentityPicker({
@@ -244,9 +243,6 @@ export function PublicPage() {
     slug ? readViewerName(slug) : null,
   )
   const [skipped, setSkipped] = useState(false)
-
-  // So that "Add to Home Screen" opens this tournament, not the sign-in page.
-  useEffect(() => pointManifestAtCurrentPage(), [slug])
 
   if (isLoading) return <Spinner label="Wczytuję…" />
 

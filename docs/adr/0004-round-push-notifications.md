@@ -65,10 +65,13 @@ but it is still a device identifier. It is never returned to any client and is d
 when the tournament finishes.
 
 On iPhone, Web Push works only for a page added to the Home Screen (iOS 16.4 and later),
-and the Home Screen app keeps its own storage, separate from Safari's. The public page
-therefore points its manifest's `start_url` at itself, so the installed app opens on the
-tournament rather than on the organiser's sign-in, and the player picks their name once
-more inside it. Expect fewer iPhone users to opt in than Android users.
+and the Home Screen app keeps its own storage, separate from Safari's. The manifest
+therefore has no `start_url`: by the manifest spec the installed app then opens on the
+page it was added from — the tournament, not the organiser's sign-in — and the player
+picks their name once more inside it. Swapping in a per-page manifest at runtime was
+tried first and does not work on iOS, which keeps the `start_url` of the manifest the
+page loaded with. `id` stays `"/"`, so the organiser's already-installed desk app keeps
+its identity. Expect fewer iPhone users to opt in than Android users.
 
 Delivery is best effort. Push services may delay or drop messages, so the public page
 stays the source of truth, and nothing in the tournament depends on a push arriving.
