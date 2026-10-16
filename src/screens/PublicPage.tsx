@@ -260,6 +260,10 @@ export function PublicPage() {
       <div className="py-16 text-center">
         <h1 className="text-xl text-text">Nie ma takiego turnieju.</h1>
         <p className="mt-2 text-text-muted">Sprawdź link albo poproś organizatora o nowy.</p>
+        {/* A deleted tournament still opens here from a Home Screen icon. */}
+        <Button variant="primary" className="mt-6" onClick={() => navigate('/kod')}>
+          Dołącz do innego turnieju
+        </Button>
       </div>
     )
   }
