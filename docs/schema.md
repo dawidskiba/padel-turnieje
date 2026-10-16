@@ -17,6 +17,7 @@ tournaments
   id                  uuid pk
   owner_id            uuid  -> auth.users
   slug                text unique          -- 10 chars, public link
+  join_code           text unique null     -- 4 digits, reused 24h after finish (ADR-0005)
   name                text
   format              americano | mexicano
   team_format         individual | teams

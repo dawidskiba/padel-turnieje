@@ -9,6 +9,7 @@ function bundle(overrides: Partial<TournamentBundle> = {}): TournamentBundle {
       id: 't1',
       owner_id: 'u1',
       slug: 'k7m2xq9p4v',
+      join_code: '4827',
       name: 'Środa Americano',
       format: 'americano',
       team_format: 'individual',

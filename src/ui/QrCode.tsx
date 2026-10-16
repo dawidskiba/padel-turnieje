@@ -50,7 +50,8 @@ export function QrCode({ value, size = 320 }: { value: string; size?: number }) 
   )
 }
 
-export function ShareBlock({ url }: { url: string }) {
+/** `code` is the four-digit join code (ADR-0005), when the tournament still has a live one. */
+export function ShareBlock({ url, code }: { url: string; code?: string | null }) {
   const [copied, setCopied] = useState(false)
 
   async function copy() {
@@ -69,6 +70,16 @@ export function ShareBlock({ url }: { url: string }) {
       <div className="bg-white p-3">
         <QrCode value={url} />
       </div>
+
+      {code ? (
+        <div className="text-center">
+          <p className="text-xs uppercase tracking-wide text-text-muted">Kod turnieju</p>
+          <p className="text-5xl font-medium tabular-nums tracking-[0.2em] text-text">{code}</p>
+          <p className="mt-1 text-sm text-text-muted">
+            Kto ma już aplikację: „Inny turniej” i ten kod.
+          </p>
+        </div>
+      ) : null}
 
       <p className="break-all text-center text-sm text-text-muted">{url}</p>
 

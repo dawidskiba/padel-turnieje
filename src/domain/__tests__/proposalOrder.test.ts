@@ -20,7 +20,7 @@ function persistThenRead(state: TournamentState, proposal: ProposedRound): Propo
   // prove the display order does not depend on it.
   const bundle: TournamentBundle = {
     tournament: {
-      id: 't', owner_id: 'u', slug: 's', name: 'n',
+      id: 't', owner_id: 'u', slug: 's', join_code: null, name: 'n',
       format: state.config.format, team_format: state.config.teamFormat,
       game_points: state.config.gamePoints, rest_points: state.config.restPoints,
       pairing_formula: state.config.pairingFormula,

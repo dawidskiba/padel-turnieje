@@ -18,6 +18,11 @@ export interface TournamentRow {
   id: string
   owner_id: string
   slug: string
+  /**
+   * Four digits a player types to reach the tournament (ADR-0005). Live until
+   * 24h after finishing, then free for reuse; null once another tournament took it.
+   */
+  join_code: string | null
   name: string
   format: TournamentFormatRow
   team_format: TeamFormatRow

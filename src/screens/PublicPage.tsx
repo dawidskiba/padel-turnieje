@@ -9,7 +9,7 @@
  */
 
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { PUBLIC_POLL_MS, usePublicTournament } from '../data/hooks'
 import { describeViewer, readViewerName, viewerCandidates, writeViewerName } from '../data/publicView'
@@ -237,6 +237,7 @@ function StandingsTable({
 
 export function PublicPage() {
   const { slug } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
   const { data, isLoading, error } = usePublicTournament(slug)
 
   const [viewer, setViewer] = useState<string | null>(() =>
@@ -294,10 +295,21 @@ export function PublicPage() {
 
       {!data.tournament.finished ? <CurrentRound payload={data} /> : null}
 
+      {data.tournament.finished ? (
+        <Button variant="primary" className="w-full" onClick={() => navigate('/kod')}>
+          Dołącz do kolejnego turnieju
+        </Button>
+      ) : null}
+
       <StandingsTable payload={data} viewer={viewer} />
 
       <footer className="flex items-center justify-between pt-2 text-xs text-text-muted">
-        <span>Odświeżam co {Math.round(PUBLIC_POLL_MS / 1000)} s</span>
+        <span>
+          Odświeżam co {Math.round(PUBLIC_POLL_MS / 1000)} s ·{' '}
+          <Link to="/kod" className="underline underline-offset-2">
+            Inny turniej
+          </Link>
+        </span>
         {viewer ? (
           <button
             type="button"

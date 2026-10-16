@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import type { ReactNode } from 'react'
 
 import { useSession } from './data/auth'
+import { JoinPage } from './screens/JoinPage'
 import { NotFoundPage } from './screens/NotFoundPage'
 import { PublicPage } from './screens/PublicPage'
 import { SignInPage } from './screens/SignInPage'
@@ -61,6 +62,7 @@ export default function App() {
 
       <Route element={<PublicLayout />}>
         <Route path="/t/:slug" element={<PublicPage />} />
+        <Route path="/kod" element={<JoinPage />} />
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />

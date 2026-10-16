@@ -10,6 +10,7 @@ function bundle(): TournamentBundle {
       id: 't1',
       owner_id: 'u1',
       slug: 'abc',
+      join_code: '4827',
       name: 'Test',
       format: 'americano',
       team_format: 'individual',

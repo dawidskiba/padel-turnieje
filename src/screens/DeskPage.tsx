@@ -34,6 +34,7 @@ import {
   useUnretireParticipant,
   useUpdateSeed,
 } from '../data/hooks'
+import { joinCodeIsLive } from '../data/joinCode'
 import { matchIdFor } from '../data/mapping'
 import { formatSide } from '../ui/format'
 import { Sheet } from '../ui/Sheet'
@@ -444,7 +445,10 @@ export function DeskPage() {
         title="Udostępnij turniej"
         size="md"
       >
-        <ShareBlock url={`${window.location.origin}/t/${bundle.tournament.slug}`} />
+        <ShareBlock
+          url={`${window.location.origin}/t/${bundle.tournament.slug}`}
+          code={joinCodeIsLive(bundle.tournament.finished_at) ? bundle.tournament.join_code : null}
+        />
         <p className="mt-4 text-center text-sm text-text-muted">
           Każdy z tym linkiem zobaczy tabelę i bieżącą rundę. Nie potrzebuje konta.
         </p>
